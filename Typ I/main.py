@@ -1,6 +1,6 @@
 import sys, os
-sys.path.append(os.path.abspath("."))
-from lib.ddd import thread
+sys.path.append(os.path.abspath("lib"))
+from ddd import thread
 from cadquery import exporters, Vector, Workplane
 from math import sin, cos, pi, floor, sqrt
 from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar
@@ -88,3 +88,4 @@ exporters.export(panel, "Panel.stl")
 
 unit = unit + panel.translate((0, 0, t - wt2))
 exporters.export(unit, "Case+Panel.stl")
+
