@@ -9,8 +9,8 @@
 /* Begin PBXFileReference section */
 		5FAA483F2E01D13B00A6D2B2 /* __init__.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
 		5FAA48402E01D13B00A6D2B2 /* ddd.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ddd.py; sourceTree = "<group>"; };
-		5FAA48422E01D13B00A6D2B2 /* spoonman.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = spoonman.py; sourceTree = "<group>"; };
-		5FAA48442E01D13B00A6D2B2 /* case.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = case.py; sourceTree = "<group>"; };
+		5FAA48422E01D13B00A6D2B2 /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
+		5FAA48442E01D13B00A6D2B2 /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -35,7 +35,7 @@
 		5FAA48432E01D13B00A6D2B2 /* Spoonman */ = {
 			isa = PBXGroup;
 			children = (
-				5FAA48422E01D13B00A6D2B2 /* spoonman.py */,
+				5FAA48422E01D13B00A6D2B2 /* main.py */,
 			);
 			path = Spoonman;
 			sourceTree = "<group>";
@@ -43,7 +43,7 @@
 		5FAA48452E01D13B00A6D2B2 /* Typ I */ = {
 			isa = PBXGroup;
 			children = (
-				5FAA48442E01D13B00A6D2B2 /* case.py */,
+				5FAA48442E01D13B00A6D2B2 /* main.py */,
 			);
 			path = "Typ I";
 			sourceTree = "<group>";
@@ -51,17 +51,17 @@
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
-		5FEA31152E01D9FE002B5887 /* Typ I */ = {
+		5FEA31152E01D9FE002B5887 /* Py */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "$(ACTION)";
-			buildConfigurationList = 5FEA31162E01D9FE002B5887 /* Build configuration list for PBXLegacyTarget "Typ I" */;
+			buildConfigurationList = 5FEA31162E01D9FE002B5887 /* Build configuration list for PBXLegacyTarget "Py" */;
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/python3;
 			buildWorkingDirectory = "$(SRCROOT)";
 			dependencies = (
 			);
-			name = "Typ I";
+			name = Py;
 			packageProductDependencies = (
 			);
 			passBuildSettingsInEnvironment = 1;
@@ -94,7 +94,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5FEA31152E01D9FE002B5887 /* Typ I */,
+				5FEA31152E01D9FE002B5887 /* Py */,
 			);
 		};
 /* End PBXProject section */
@@ -123,7 +123,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5FEA31162E01D9FE002B5887 /* Build configuration list for PBXLegacyTarget "Typ I" */ = {
+		5FEA31162E01D9FE002B5887 /* Build configuration list for PBXLegacyTarget "Py" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5FEA31172E01D9FE002B5887 /* Release */,

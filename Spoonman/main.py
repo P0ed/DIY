@@ -31,4 +31,4 @@ unit = dif([
     wp.ellipse(w / 2, l / 2).extrude(t).chamfer(c2),
 ]).translate((0, 0, t / 2))
 
-exporters.export(unit, "spoon.stl")
+exporters.export(unit, "Spoon.stl")

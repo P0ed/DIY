@@ -1,8 +1,7 @@
 import sys, os
 sys.path.append(os.path.abspath("."))
 from lib.ddd import thread
-import cadquery as cq
-from cadquery import Vector, Workplane
+from cadquery import exporters, Vector, Workplane
 from math import sin, cos, pi, floor, sqrt
 from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar
 from functools import reduce
@@ -82,7 +81,10 @@ panel = dif([
     grid(lambda: wp.cylinder(wt2, 9.7 / 2))
 ]).translate((0, 0, wt2 / 2))
 
-# unit = unit + panel.translate((0, 0, t - wt2))
-# unit = panel
-unit = thread(4.0, 0.8, 5, 0.8 / 3, 0.2)
-cq.exporters.export(unit, "case.stl")
+#m4 = thread(4.0, 0.8, 5, 0.8 / 3, 0.2)
+
+exporters.export(unit, "Case.stl")
+exporters.export(panel, "Panel.stl")
+
+unit = unit + panel.translate((0, 0, t - wt2))
+exporters.export(unit, "Case+Panel.stl")
