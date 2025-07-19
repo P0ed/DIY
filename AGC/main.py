@@ -23,8 +23,8 @@ t2: float = t / 2.0
 col: float = 9.0
 hol: float = col / 2
 
-c: float = 1
-c2: float = 0.5
+c: float = 2.5
+c2: float = 0.25
 
 cell: float = inch
 scuth: float = (h - wt * 6) / 2 - wt * 2
@@ -78,6 +78,25 @@ def hcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
             .translate((w / 2 - d + r, 0, c2))
             .mirror("YZ", union = True)
         ),
+        (
+            wp.box(r * 4 + c2 * 2, r * 4 + c2 * 2, c2 * 2 + pl)
+            .edges("+Z")
+            .fillet(r + c2)
+            .edges()
+            .chamfer(c2)
+            .translate((w / 2 - d + r, h / 2 - d + r, l / 2))
+            .mirror("YZ", union = True)
+            .mirror("XZ", union = True)
+        ),
+        (
+            wp.box(r * 4 + c2 * 2, r * 2 + pl + c2 * 2, c2 * 2 + pl)
+            .edges("+Z")
+            .fillet(r + c2)
+            .edges()
+            .chamfer(c2)
+            .translate((w / 2 - d + r, 0, l / 2))
+            .mirror("YZ", union = True)
+        ),
     ])
 
 def grid(tfm: Callable[[int, int], Workplane]) -> Workplane:
@@ -86,22 +105,41 @@ def grid(tfm: Callable[[int, int], Workplane]) -> Workplane:
 def lemo() -> Workplane:
     return wp.cylinder(wt, 9.1 / 2).intersect(wp.box(8.3, 9.1, wt))
 
+def brick(side: float = 1.0) -> Workplane:
+    return dif([
+        (
+            wp.box(w, h, t2).edges("+Z").chamfer(c)
+            .intersect(
+                wp.box(w, h, t2 + c2 * 2)
+                .edges("+Z").chamfer(c)
+                .edges().chamfer(c2)
+                .translate((0, 0, c2 * side))
+            )
+        ),
+        (
+            wp.box(cw, ch, t2)
+            .edges("|Z")
+            .fillet(2.0)
+            .edges()
+            .chamfer(c2 * 2)
+            .translate((0, 0, wt2 * side))
+        ),
+        (
+            wp.box((col - wt) * 2, scuth, t2)
+            .edges("|X")
+            .fillet(2.0)
+            .edges()
+            .chamfer(c2 * 2)
+            .translate((w / 2, h / 4 - col / 4, wt * side))
+            .mirror("YZ", union = True)
+            .mirror("XZ", union = True)
+        ),
+    ])
+
 def case() -> Workplane:
     return sum([
         dif([
-            wp.box(w, h, t2).edges("+Z").chamfer(c * 2).intersect(wp.box(w, h, t2 + c2 * 2).chamfer(c2).translate((0, 0, c2))),
-            (
-                wp.box(cw, ch, t2)
-                .chamfer(c2)
-                .translate((0, 0, wt2))
-            ),
-            (
-                wp.box((col - wt) * 2, scuth, t2)
-                .chamfer(c2)
-                .translate((w / 2, h / 4 - col / 4, wt))
-                .mirror("YZ", union = True)
-                .mirror("XZ", union = True)
-            ),
+            brick(1.0),
             holes(w, h, hol, t2, 2.5 / 2).translate((0, 0, 0)),
             lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((-inch, h / 2 - wt / 2, wt2 / 2)),
             lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((inch, h / 2 - wt / 2, wt2 / 2)),
@@ -119,32 +157,23 @@ def pattern(name: str) -> Callable[[int, int], bool]:
 
 def makePanel(ptn: Callable[[int, int], bool]) -> Workplane:
     return dif([
-        wp.box(w, h, t2).edges("+Z").chamfer(c * 2).intersect(wp.box(w, h, t2 + c2 * 2).chamfer(c2).translate((0, 0, -c2))),
-        (
-            wp.box(cw, ch, t2)
-            .chamfer(c2)
-            .translate((0, 0, -wt2))
-        ),
-        (
-            wp.box((col - wt) * 2, scuth, t2)
-            .chamfer(c2)
-            .translate((w / 2, h / 4 - col / 4, -wt))
-            .mirror("YZ", union = True)
-            .mirror("XZ", union = True)
-        ),
+        brick(-1.0),
         grid(lambda x, y: (
             wp.cylinder(t2, inch / 8 + 0.2)
             if ptn(x, y) and y < 3 else
             wp.cylinder(t2, 9.7 / 2)
         )),
         holes(w, h, hol, t2, 3.1 / 2),
-        hcuts(w, h, hol, wt, 3.5).translate((0, 0, t2 / 2 - wt / 2)),
+        hcuts(w, h, hol, wt, wt).translate((0, 0, t2 / 2 - wt / 2)),
     ]).translate((0, 0, t2 / 2))
 
 panel = makePanel(pattern("<>"))
-exporters.export(panel, "TOP.stl")
-
 unit = case()
-exporters.export(unit, "BOT.stl")
 comp = unit + panel.translate((0, 0, t2))
+
+exporters.export(panel, "TOP.stl")
+exporters.export(unit, "BOT.stl")
 exporters.export(comp, "COMP.stl")
+
+exporters.export(panel, "Z_TOP.step")
+exporters.export(unit, "Z_BOT.step")
