@@ -5,11 +5,8 @@ from cadquery import exporters, Vector, Workplane
 
 import sys, os
 sys.path.append(os.path.abspath("."))
-from lib.ddd import thread
-
-pl: float = 0.001
-s2: float = sqrt(2) / 2
-inch: float = 25.4
+from lib.ddd import lemo, grid
+from lib.tools import *
 
 wt: float = 3.3
 wt2: float = 2.0
@@ -30,22 +27,6 @@ cell: float = inch
 scuth: float = (h - wt * 6) / 2 - wt * 2
 
 wp = Workplane()
-
-A = TypeVar('A')
-B = TypeVar('B')
-C = TypeVar('C')
-def id(x: A) -> A:
-    return x
-def com2(l: Callable[[B], C], r: Callable[[A], B]) -> Callable[[A], C]:
-    return lambda x: l(r(x))
-def com(xs: List[Callable[[Any], Any]]) -> Callable[[Any], Any]:
-    return reduce(com2, xs, id)
-def flat(xs: List[List[A]]) -> List[A]:
-    return reduce(list.__add__, xs)
-def sum(xs: List[Workplane]) -> Workplane:
-    return reduce(lambda x, y: x + y, xs)
-def dif(xs: List[Workplane]) -> Workplane:
-    return reduce(lambda x, y: x - y, xs)
 
 def holes(w: float, h: float, d: float, l: float, r: float) -> Workplane:
     return sum([
@@ -99,12 +80,6 @@ def hcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
         ),
     ])
 
-def grid(tfm: Callable[[int, int], Workplane]) -> Workplane:
-    return sum([tfm(x, y).translate(((x - 1.5) * inch, (y - 2.5) * inch, 0)) for x in range(4) for y in range(6)])
-
-def lemo() -> Workplane:
-    return wp.cylinder(wt, 9.1 / 2).intersect(wp.box(8.3, 9.1, wt))
-
 def brick(side: float = 1.0) -> Workplane:
     return dif([
         (
@@ -141,19 +116,10 @@ def case() -> Workplane:
         dif([
             brick(1.0),
             holes(w, h, hol, t2, 2.5 / 2).translate((0, 0, 0)),
-            lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((-inch, h / 2 - wt / 2, wt2 / 2)),
-            lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((inch, h / 2 - wt / 2, wt2 / 2)),
+            lemo(wt).rotate((0, 0, 0), (1, 0, 0), 90).translate((-inch, h / 2 - wt / 2, wt2 / 2)),
+            lemo(wt).rotate((0, 0, 0), (1, 0, 0), 90).translate((inch, h / 2 - wt / 2, wt2 / 2)),
         ]),
     ]).translate((0, 0, t2 / 2))
-
-_patterns: dict[str, Callable[[int, int], bool]] = {
-    "ll": lambda x, y: x > 0 and x < 3,
-    "w": lambda x, y: not ((y == 0 and (x == 0 or x == 3)) or (y == 1 and (x == 1 or x == 2))),
-    "<>": lambda x, y: not (((y == 0 or y == 2) and (x == 0 or x == 3)) or (y == 1 and (x == 1 or x == 2))),
-    "x": lambda x, y: ((y == 0 or y == 2) and (x == 0 or x == 3)) or (y == 1 and (x == 1 or x == 2)),
-}
-def pattern(name: str) -> Callable[[int, int], bool]:
-    return _patterns[name] or (lambda x, y: True)
 
 def makePanel(ptn: Callable[[int, int], bool]) -> Workplane:
     return dif([
@@ -167,13 +133,13 @@ def makePanel(ptn: Callable[[int, int], bool]) -> Workplane:
         hcuts(w, h, hol, wt, wt).translate((0, 0, t2 / 2 - wt / 2)),
     ]).translate((0, 0, t2 / 2))
 
-panel = makePanel(pattern("<>"))
-unit = case()
-comp = unit + panel.translate((0, 0, t2))
+top = makePanel(pattern("<>"))
+bot = case()
+comp = bot + top.translate((0, 0, t2))
 
-exporters.export(panel, "TOP.stl")
-exporters.export(unit, "BOT.stl")
+exporters.export(top, "TOP.stl")
+exporters.export(bot, "BOT.stl")
 exporters.export(comp, "COMP.stl")
 
-exporters.export(panel, "Z_TOP.step")
-exporters.export(unit, "Z_BOT.step")
+exporters.export(top, "TOP.step")
+exporters.export(bot, "BOT.step")

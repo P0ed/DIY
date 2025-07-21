@@ -5,7 +5,8 @@ from cadquery import exporters, Vector, Workplane
 
 import sys, os
 sys.path.append(os.path.abspath("."))
-from lib.ddd import thread
+from lib.ddd import grid, lemo
+from lib.tools import *
 
 pl: float = 0.001
 s2: float = sqrt(2) / 2
@@ -36,10 +37,6 @@ def sum(xs: List[Workplane]) -> Workplane:
 def dif(xs: List[Workplane]) -> Workplane:
     return reduce(lambda x, y: x - y, xs)
 
-T = TypeVar('T')
-def flat(xs: List[List[T]]) -> List[T]:
-    return reduce(list.__add__, xs)
-
 def holes(w: float, h: float, dw: float, dh: float, l: float, r: float) -> Workplane:
     return sum([
         wp.cylinder(l, r).translate((w / 2 - dw, h / 2 - dh, 0)),
@@ -47,12 +44,6 @@ def holes(w: float, h: float, dw: float, dh: float, l: float, r: float) -> Workp
         wp.cylinder(l, r).translate((w / 2 - dw, -h / 2 + dh, 0)),
         wp.cylinder(l, r).translate((-w / 2 + dw, -h / 2 + dh, 0)),
     ])
-
-def grid(tfm: Callable[[int, int], Workplane]) -> Workplane:
-    return sum([tfm(x, y).translate(((x - 1.5) * inch, (y - 2.5) * inch, 0)) for x in range(4) for y in range(6)])
-
-def lemo() -> Workplane:
-    return wp.cylinder(wt2, 9.2 / 2).intersect(wp.box(8.4, 9.2, wt2))
 
 def wafer(w: float, h: float, t: float) -> Workplane:
     hcc: int = round(w / cell) + 1
@@ -83,9 +74,9 @@ def case() -> Workplane:
                 .translate((0, 0, (t - wt2 * 2 - c2 * 2) / 2))
             ),
             holes(mw, h, holx, holy, wt2 * 2, 3.3 / 2).translate((0, 0, t / 2 - wt2)),
-            lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((-inch, h / 2 - wt2 / 2)),
-            lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((0, h / 2 - wt2 / 2)),
-            lemo().rotate((0, 0, 0), (1, 0, 0), 90).translate((inch, h / 2 - wt2 / 2)),
+            lemo(wt2).rotate((0, 0, 0), (1, 0, 0), 90).translate((-inch, h / 2 - wt2 / 2)),
+            lemo(wt2).rotate((0, 0, 0), (1, 0, 0), 90).translate((0, h / 2 - wt2 / 2)),
+            lemo(wt2).rotate((0, 0, 0), (1, 0, 0), 90).translate((inch, h / 2 - wt2 / 2)),
             wp.box(4 * inch, 6 * inch, wt2).translate((0, 0, (wt2 - t) / 2)),
         ]),
         wafer(4 * inch, 6 * inch, wt2).translate((0, 0, (wt2 - t) / 2)),
@@ -117,12 +108,12 @@ def makePanel(ptn: Callable[[int, int], bool]) -> Workplane:
         holes(mw, h, holx, holy, wt2, 3.3 / 2),
     ]).translate((0, 0, wt2 / 2))
 
-# panel = makePanel(pattern("<>"))
-# exporters.export(panel, "Panel.stl")
+panel = makePanel(pattern("<>"))
+exporters.export(panel, "Panel.stl")
 
-# unit = case()
-# exporters.export(unit, "Case.stl")
-# comp = unit + panel.translate((0, 0, t - wt2))
-# exporters.export(comp, "Case_x_Panel.stl")
+unit = case()
+exporters.export(unit, "Case.stl")
+comp = unit + panel.translate((0, 0, t - wt2))
+exporters.export(comp, "Case_x_Panel.stl")
 
-# [exporters.export(makePanel(ptn), "Panel_" + name + ".stl") for name, ptn in _patterns.items()]
+[exporters.export(makePanel(ptn), "Panel_" + name + ".stl") for name, ptn in patterns.items()]
