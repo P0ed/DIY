@@ -10,7 +10,7 @@ from lib.ddd import *
 from lib.tools import *
 
 m4xr: float = 4.1 / 2
-m4dr: float = 3.4 / 2
+m4dr: float = 3.3 / 2
 
 wt: float = 3.0
 wt2: float = 1.5
