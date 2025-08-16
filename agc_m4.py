@@ -78,7 +78,7 @@ def makeTop(ptn: Callable[[int, int], bool]) -> Workplane:
         holes(w, h, hol, t2, m4xr),
         hcuts(w, h, hol, wtt, hol * s2).translate((0, 0, t3)),
         com(mirror("XZ"), mov(0, 1.5 * inch, t3)) (
-            box_fc(4 * inch, 3 * inch - wt, 2.0, '|Z', 2.0, c2)
+            box_fc(4 * inch - wt, 3 * inch - wt, 2.0, '|Z', 2.0, c2)
         ),
     ])
 
