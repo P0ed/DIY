@@ -18,7 +18,7 @@ def id(x: A) -> A:
     return x
 def com2(l: Callable[[B], C], r: Callable[[A], B]) -> Callable[[A], C]:
     return lambda x: l(r(x))
-def com(xs: List[Callable[[Any], Any]]) -> Callable[[Any], Any]:
+def com(*xs: Callable[[Any], Any]) -> Callable[[Any], Any]:
     return reduce(com2, xs, id)
 def flat(xs: List[List[A]]) -> List[A]:
     return reduce(list.__add__, xs)
