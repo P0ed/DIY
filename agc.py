@@ -36,11 +36,11 @@ def box_fc(w, h, t, fe, fr, c) -> Workplane:
 
 def hcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
     return sum([
-        mirror2('XZ', 'YZ') (
+        mirror('XZ', 'YZ') (
             box_fc((r + d) * 2, (r + d) * 2, l + c1, "+Z", r, c2)
             .translate((w / 2, h / 2, c2 - l / 2))
         ),
-        mirror2('XZ', 'YZ') (
+        mirror('XZ', 'YZ') (
             box_fc((r + d + c2) * 2, (r + d + c2) * 2, c1 + pl, "+Z", r + c2, c2)
             .translate((w / 2, h / 2, 0))
         ),
@@ -102,10 +102,10 @@ top = makeTop(ptn_all)
 
 comp = bot + top.translate((0, 0, t2 + pl))
 
-# show(bot, top.translate((0, 0, t2 + pl)))
-
 exporters.export(top, "STL/AGC01.stl")
 exporters.export(bot, "STL/AGC10.stl")
 exporters.export(comp, "STL/AGC11.stl")
 exporters.export(top, "STEP/AGC01.step")
 exporters.export(bot, "STEP/AGC10.step")
+
+show(bot, top.translate((0, 0, t2 + pl)))
