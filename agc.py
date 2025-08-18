@@ -100,5 +100,12 @@ def makeBot() -> Workplane:
 
 bot = makeBot()
 top = makeTop(ptn_all)
-export("AGC", bot, top)
-show(bot, mov(z = t2 + pl) (top))
+comp = [
+	mov(z = -t3 - pl) (bot),
+	mov(z = t3 + pl) (top),
+]
+
+export("AGC01", bot)
+export("AGC10", top)
+export("AGC11", sum(comp), step = False)
+show(comp)

@@ -23,8 +23,8 @@ def render(path: str, wp: Workplane, margin: float = 32.0, hidden: bool = False)
 	box = bounds(view)
 
 	view.export(path, opt = {
-		"width": (box.xlen + margin * 2) * 4,
-		"height": (box.ylen + margin * 2) * 4,
+		"width": 1280,
+		"height": 960,
 		"marginLeft": margin,
 		"marginTop": margin,
 		"showAxes": False,
@@ -35,24 +35,9 @@ def render(path: str, wp: Workplane, margin: float = 32.0, hidden: bool = False)
 		"showHidden": hidden,
 	})
 
-def export(name: str, bot: Workplane, top: Workplane):
-	bbox: BoundBox = bounds(bot)
-	tbox: BoundBox = bounds(top)
-
-	comp = sum([
-		mov(0, 0, -bbox.zlen / 2 - pl) (bot),
-		mov(0, 0, tbox.zlen / 2 + pl) (top),
-	])
-
+def export(name: str, wp: Workplane, stl: bool = True, svg: bool = True, step: bool = True):
 	[os.makedirs(dir, exist_ok=True) for dir in ["STL", "STEP", "SVG"]]
-
-	bot.export("STL/" + name + "01.stl")
-	top.export("STL/" + name + "10.stl")
-	comp.export("STL/" + name + "11.stl")
-
-	render("SVG/" + name + "01.svg", bot)
-	render("SVG/" + name + "10.svg", top)
-	render("SVG/" + name + "11.svg", comp)
-
-	bot.export("STEP/" + name + "01.step")
-	top.export("STEP/" + name + "10.step")
+	
+	if stl: wp.export("STL/" + name + ".stl")
+	if svg: render("SVG/" + name + ".svg", wp)
+	if step: wp.export("STEP/" + name + ".step")
