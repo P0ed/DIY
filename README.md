@@ -32,7 +32,7 @@ A modern electronic enclosure with:
 ## Project Structure
 
 ```
-├── README.md           # This file
+├── README.md          # This file
 ├── agc.py             # AGC case generator
 ├── typ_i.py           # Typ-I case generator
 ├── lib/

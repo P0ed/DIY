@@ -1,7 +1,7 @@
 from math import sin, cos, pi, floor, sqrt
 from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar, Any
 from functools import reduce
-from cadquery import exporters, Vector, Workplane
+from cadquery import Vector, Workplane
 from ocp_vscode import show
 
 import sys, os
@@ -72,7 +72,7 @@ def brick(wall: float, dir: float) -> Workplane:
 def makeTop(ptn: Callable[[int, int], bool]) -> Workplane:
     hole_large = wp.cylinder(t2, 9.53 / 2 + 0.1)
     hole_small = wp.cylinder(t2, inch / 8 + 0.1)
-    return com2(mov(0, 0, t3), dif) ([
+    return dif([
         brick(wt, -1.0),
         grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
         holes(w, h, hol, t2, m4xr),
@@ -83,7 +83,7 @@ def makeTop(ptn: Callable[[int, int], bool]) -> Workplane:
     ])
 
 def makeBot() -> Workplane:
-    return com(mov(0, 0, t3), dif) ([
+    return dif([
         brick(wt, 1.0),
         holes(w, h, hol, t2, m4dr),
         mov(0, 0, -t3 / 2) (holes(w, h, hol, t3, 4.5 / 2)),
@@ -98,14 +98,19 @@ def makeBot() -> Workplane:
         ),
     ])
 
-bot = makeBot()
-top = makeTop(ptn_all)
-comp = [
+bot: Workplane = makeBot()
+top: Workplane = makeTop(ptn_all)
+comp: List[Workplane] = [
 	mov(z = -t3 - pl) (bot),
 	mov(z = t3 + pl) (top),
 ]
+cut: float = 35.0
+thread_cut: Workplane = mov((cut / 2 - w) / 2, (cut / 2 - h) / 2) (
+	bot.intersect(mov(w / 2, h / 2) (wp.box(cut, cut, cut)))
+)
 
 export("AGC01", bot)
 export("AGC10", top)
 export("AGC11", sum(comp), step = False)
-show(comp)
+export("AGC01_Thread", thread_cut, hidden = True, stl = False, step = False)
+show(thread_cut)
