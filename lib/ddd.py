@@ -23,3 +23,15 @@ def holes(w: float, h: float, d: float, l: float, r: float) -> Workplane:
     return com(mirror("XZ"), mirror("YZ"), mov(w / 2 - d, h / 2 - d)) (
 		wp.cylinder(l, r)
 	)
+
+def three(wp: Workplane) -> Workplane:
+    box = wp.combine().objects[0].BoundingBox()
+    return sum([
+		mov() (wp),
+        mov(box.xlen / 2 + box.ylen / 2 + 32) (
+            wp.rotate((0, 0, 0), (0, 0, 1), 90)
+        ),
+        mov(0, 0, box.ylen / 2 + box.zlen + 32) (
+            wp.rotate((0, 0, 0), (1, 0, 0), 90)
+		),
+	])

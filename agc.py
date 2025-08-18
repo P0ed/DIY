@@ -8,6 +8,7 @@ import sys, os
 sys.path.append(os.path.abspath("."))
 from lib.ddd import *
 from lib.tools import *
+from lib.export import export
 
 m4xr: float = 4.1 / 2
 m4dr: float = 3.3 / 2
@@ -99,13 +100,5 @@ def makeBot() -> Workplane:
 
 bot = makeBot()
 top = makeTop(ptn_all)
-
-comp = bot + top.translate((0, 0, t2 + pl))
-
-exporters.export(top, "STL/AGC01.stl")
-exporters.export(bot, "STL/AGC10.stl")
-exporters.export(comp, "STL/AGC11.stl")
-exporters.export(top, "STEP/AGC01.step")
-exporters.export(bot, "STEP/AGC10.step")
-
+export(bot, top)
 show(bot, top.translate((0, 0, t2 + pl)))
