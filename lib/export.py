@@ -6,40 +6,53 @@ from functools import reduce
 from lib.tools import *
 from lib.ddd import *
 
+def three_view(wp: Workplane) -> Workplane:
+    box = bounds(wp)
+    return com(mov(box.xlen / 2 + box.ylen / 2, 0, box.ylen / 2 + box.zlen / 2), sum) ([
+		mov() (wp),
+        mov(box.xlen / 2 + box.ylen / 2 + 32) (
+            wp.rotate((0, 0, 0), (0, 0, 1), 90)
+        ),
+        mov(0, 0, box.ylen / 2 + box.zlen / 2 + 32) (
+            wp.rotate((0, 0, 0), (1, 0, 0), 90)
+		),
+	])
+
+def render(path: str, wp: Workplane, margin: float = 32.0, hidden: bool = False):
+	view = three_view(wp).rotate((0, 0, 0), (0, 1, 0), 90)
+	box = bounds(view)
+
+	view.export(path, opt = {
+		"width": (box.xlen + margin * 2) * 4,
+		"height": (box.ylen + margin * 2) * 4,
+		"marginLeft": margin,
+		"marginTop": margin,
+		"showAxes": False,
+		"projectionDir": (0, -1, 0),
+		"strokeWidth": 0.25,
+		"strokeColor": (8, 8, 8),
+		"hiddenColor": (223, 223, 223),
+		"showHidden": hidden,
+	})
+
 def export(bot: Workplane, top: Workplane):
-	bbox: BoundBox = bot.combine().objects[0].BoundingBox()
-	tbox: BoundBox = top.combine().objects[0].BoundingBox()
+	bbox: BoundBox = bounds(bot)
+	tbox: BoundBox = bounds(top)
 
 	comp = sum([
-		mov(0, 0, -bbox.zlen / 2) (bot),
+		mov(0, 0, -bbox.zlen / 2 - pl) (bot),
 		mov(0, 0, tbox.zlen / 2 + pl) (top),
 	])
 
-	os.makedirs("STL", exist_ok=True)
-	os.makedirs("STEP", exist_ok=True)
-	os.makedirs("SVG", exist_ok=True)
+	[os.makedirs(dir, exist_ok=True) for dir in ["STL", "STEP", "SVG"]]
 
-	top.export("STL/AGC01.stl")
-	bot.export("STL/AGC10.stl")
+	bot.export("STL/AGC01.stl")
+	top.export("STL/AGC10.stl")
 	comp.export("STL/AGC11.stl")
 
-	render("SVG/AGC11.svg", three(comp))
-	top.export("STEP/AGC01.step")
-	bot.export("STEP/AGC10.step")
+	render("SVG/AGC01.svg", bot)
+	render("SVG/AGC10.svg", top)
+	render("SVG/AGC11.svg", comp)
 
-
-def render(path: str, wp: Workplane):
-	box = wp.combine().objects[0].BoundingBox()
-	wp.export(path, opt = {
-		"width": box.xlen * 8 + 64,
-		"height": box.ylen * 8 + 64,
-		"marginLeft": 32,
-		"marginTop": 32,
-		"showAxes": False,
-		"projectionDir": (0, 0, 1),
-		"strokeWidth": 0.25,
-		"strokeColor": (255, 0, 0),
-		"hiddenColor": (0, 0, 255),
-		"showHidden": False,
-		# "focus": 100,
-	})
+	bot.export("STEP/AGC01.step")
+	top.export("STEP/AGC10.step")
