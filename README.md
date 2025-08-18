@@ -45,7 +45,7 @@ A modern electronic enclosure with:
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.12
 - CadQuery
 - ocp-vscode (for visualization)
 
@@ -107,7 +107,7 @@ Key dimensions in `typ_i.py`:
 ### Hole Patterns
 
 Available patterns (defined in `lib/tools.py`):
-- `"ll"`: Limited layout (middle columns only)
+- `"ll"`: vertical columns only
 - `"w"`: W-shaped pattern
 - `"<>"`: Diamond pattern
 - `"x"`: X-shaped pattern
@@ -141,23 +141,9 @@ The AGC case design:
 ## Manufacturing Notes
 
 ### 3D Printing
-- Use 0.2mm layer height for best surface finish
-- Support material may be needed for overhangs
-- Print orientation: bottom face down for best dimensional accuracy
+- Recommended process: `MJF`/`SLS`/`SLM`
+- Recommended materials: `PA12`/`PA11`/`3201PA-F`/`3301PA`/`Ti TC4`/`AlSi10Mg`
 
 ### CNC Machining
+- Recommended materials: `Aluminum 7075`
 - STEP files provided for CAM software
-- Recommended materials: Aluminum 6061, ABS, or HDPE
-- Consider tool access for internal features
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test the generated files
-5. Submit a pull request
-
-## License
-
-This project is open source. Please check the repository for license details.

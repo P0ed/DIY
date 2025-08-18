@@ -100,5 +100,5 @@ def makeBot() -> Workplane:
 
 bot = makeBot()
 top = makeTop(ptn_all)
-export(bot, top)
-show(bot, top.translate((0, 0, t2 + pl)))
+export("AGC", bot, top)
+show(bot, mov(z = t2 + pl) (top))

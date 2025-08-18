@@ -35,7 +35,7 @@ def render(path: str, wp: Workplane, margin: float = 32.0, hidden: bool = False)
 		"showHidden": hidden,
 	})
 
-def export(bot: Workplane, top: Workplane):
+def export(name: str, bot: Workplane, top: Workplane):
 	bbox: BoundBox = bounds(bot)
 	tbox: BoundBox = bounds(top)
 
@@ -46,13 +46,13 @@ def export(bot: Workplane, top: Workplane):
 
 	[os.makedirs(dir, exist_ok=True) for dir in ["STL", "STEP", "SVG"]]
 
-	bot.export("STL/AGC01.stl")
-	top.export("STL/AGC10.stl")
-	comp.export("STL/AGC11.stl")
+	bot.export("STL/" + name + "01.stl")
+	top.export("STL/" + name + "10.stl")
+	comp.export("STL/" + name + "11.stl")
 
-	render("SVG/AGC01.svg", bot)
-	render("SVG/AGC10.svg", top)
-	render("SVG/AGC11.svg", comp)
+	render("SVG/" + name + "01.svg", bot)
+	render("SVG/" + name + "10.svg", top)
+	render("SVG/" + name + "11.svg", comp)
 
-	bot.export("STEP/AGC01.step")
-	top.export("STEP/AGC10.step")
+	bot.export("STEP/" + name + "01.step")
+	top.export("STEP/" + name + "10.step")
