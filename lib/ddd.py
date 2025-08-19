@@ -22,8 +22,8 @@ def grid(tfm: Callable[[int, int], Workplane]) -> Workplane:
 def lemo(wt: float) -> Workplane:
     return wp.cylinder(wt, 9.1 / 2).intersect(wp.box(8.3, 9.1, wt))
 
-def holes(w: float, h: float, d: float, l: float, r: float) -> Workplane:
-    return com(mirror("XZ"), mirror("YZ"), mov(w / 2 - d, h / 2 - d)) (
+def holes(w: float, h: float, dw: float, dh: float, l: float, r: float) -> Workplane:
+    return com(mirror("XZ"), mirror("YZ"), mov(w / 2 - dw, h / 2 - dh)) (
 		wp.cylinder(l, r)
 	)
 

@@ -40,10 +40,10 @@ def box_fc(w, h, t, fe, fr, c) -> Workplane:
 
 def unit(tfm: Callable[[int], Workplane]) -> Workplane:
 	return com(mov(-cw / 2 * (units - 1)), sum) ([
-		com(mov(i * cw), tfm)(i) for i in range(units)
+		com(mov(i * cw), tfm) (i) for i in range(units)
 	])
 
-def hcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
+def lcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
 	return sum([
 		mirror('XZ', 'YZ') (
 			box_fc((r + d) * 2, (r + d) * 2, l + c1, '+Z', r, c2)
@@ -51,6 +51,18 @@ def hcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
 		),
 		mirror('XZ', 'YZ') (
 			box_fc((r + d + c2) * 2, (r + d + c2) * 2, c1 + pl, '+Z', r + c2, c2)
+			.translate((w / 2, h / 2, 0))
+		),
+	])
+
+def ucuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
+	return sum([
+		mirror('XZ', 'YZ') (
+			box_fc(r * 2 + pl, (r + d) * 2, l + c1, '+Z', r, c2)
+			.translate((w / 2, h / 2, c2 - l / 2))
+		),
+		mirror('XZ', 'YZ') (
+			box_fc((r + c2) * 2 + pl, (r + d + c2) * 2, c1 + pl, '+Z', r + c2, c2)
 			.translate((w / 2, h / 2, 0))
 		),
 	])
@@ -69,7 +81,9 @@ def brick(wall: float, dir: float) -> Workplane:
 		),
 		com2(mov(0, 0, wall * dir), sum) ([
 			box_fc(w - col, h - col * 2, t2, '|Z', ir, c2),
-			box_fc(w - col * 2, h - wt * 2, t2, '|Z', ir, c2),
+			unit(lambda i: box_fc(
+				(w - col) / units - col, h - wt * 2, t2, '|Z', ir, c2
+			)),
 		]),
 		mirror('YZ') (
 			box_fc(wt * 2, h - col * 2, t2 + 4.0, '|X', ir, c2)
@@ -89,21 +103,37 @@ def makeTop(ptn: Callable[[int, int], bool] = ptn_all) -> Workplane:
 				box_fc(cw - wt, ch / 2 - wt, 2.0, '|Z', ir, c2)
 			),
 		])),
-		holes(w, h, hol, t2, m4xr),
-		hcuts(w, h, hol, wt * 2, hol * s2).translate((0, 0, t3)),
+		holes(w, h, hol, hol, t2, m4xr),
+		lcuts(w, h, hol, wt * 2, hol * s2).translate((0, 0, t3)),
+		*([] if units != 2 else [
+			holes(0, h, 0, hol, t2, m4xr),
+			ucuts(0, h, hol, wt * 2, hol * s2).translate((0, 0, t3))
+		]),
+		*([] if units != 3 else [
+			holes(0, h, cw / 2, hol, t2, m4xr),
+			ucuts(cw, h, hol, wt * 2, hol * s2).translate((0, 0, t3))
+		]),
 	])
 
 def makeBot() -> Workplane:
     return dif([
         brick(wt, 1.0),
-        holes(w, h, hol, t2, m4dr),
-        mov(0, 0, -t3 / 2) (holes(w, h, hol, t3, m4xr)),
+        holes(w, h, hol, hol, t2, m4dr),
+        mov(0, 0, -t3 / 2) (holes(w, h, hol, hol, t3, m4xr)),
+		*([] if units != 2 else [
+			holes(0, h, 0, hol, t2, m4dr),
+			mov(z = -t3 / 2) (holes(0, h, 0, hol, t3, m4xr)),
+		]),
+		*([] if units != 3 else [
+			holes(0, h, cw / 2, hol, t2, m4dr),
+			mov(z = -t3 / 2) (holes(0, h, cw / 2, hol, t3, m4xr)),
+		]),
         com(mirror('XZ'), mov(0, (h / 2 - col + wt2) / 2, wt - t3)) (
             box_fc(w - 4 * wt, h / 2 - col - wt2, 2.0, '|Z', ir, c2)
         ),
-        com(mirror('XZ'), mov(0, (h - col) / 2 - wt, wt - t3)) (
-            box_fc(w - col * 2, col, 2.0, '|Z', ir, c2),
-        ),
+		unit(lambda i: com(mirror('XZ'), mov(0, (h - col) / 2 - wt, wt - t3)) (
+            box_fc((w - col) / units - col, col, 2.0, '|Z', ir, c2),
+        )),
         com(mirror('YZ'), mov((units * 2 - 1) * inch, h / 2 - wt / 2, 1.0)) (
              lemo(wt).rotate((0, 0, 0), (1, 0, 0), 90)
         ),
@@ -112,7 +142,7 @@ def makeBot() -> Workplane:
 def threadCut(body: Workplane) -> Workplane:
     return com(rotz(180), mov((col / 2 - w) / 2, (col * 3 / 2 - h) / 2)) (
 		sum([
-			body - holes(w, h, hol, t2, m4r),
+			body - holes(w, h, hol, hol, t2, m4r),
 			mov(w / 2 - hol, h / 2 - hol) (Workplane(thread('M4', t3, 'internal'))),
 		])
 		.intersect(mov(w / 2, h / 2) (wp.box(col, col * 3, t)))
@@ -129,16 +159,9 @@ for i in range(3):
 		mov(z = t3 + pl) (top),
 	]
 
+	if i == 0: export(f'AGC-01T', threadCut(bot), stl = False, step = False)
 	export(f'AGC-{units}U-01', bot)
 	export(f'AGC-{units}U-10', top)
 	export(f'AGC-{units}U-11', sum(stk), step = False)
 
-bot: Workplane = makeBot()
-top: Workplane = makeTop()
-stk: List[Workplane] = [
-	mov(z = -t3 - pl) (bot),
-	mov(z = t3 + pl) (top),
-]
-thd: Workplane = threadCut(bot)
-export(f'AGC-01T', thd, stl = False, step = False)
-show(stk)
+	if i == 2: show(stk)

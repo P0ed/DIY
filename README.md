@@ -11,15 +11,8 @@ A replica enclosure inspired by the Apollo Guidance Computer, featuring:
 - Modular top and bottom sections
 - Configurable hole patterns for different panel layouts
 - M4 mounting holes with proper clearances
-- LEMO connector cutouts
+- LEMO B0 connector cutouts
 - Chamfered edges and professional finish
-
-### Typ-I Case
-A modern electronic enclosure with:
-- Wafer-style internal structure for component mounting
-- Multiple LEMO connector positions
-- Configurable panel patterns
-- Integrated mounting system
 
 ## Features
 
@@ -34,7 +27,6 @@ A modern electronic enclosure with:
 ```
 ├── README.md          # This file
 ├── agc.py             # AGC case generator
-├── typ_i.py           # Typ-I case generator
 ├── lib/
 │   ├── __init__.py
 │   ├── ddd.py         # 3D modeling utilities
@@ -140,10 +132,10 @@ The AGC case design:
 
 ## Manufacturing Notes
 
-### 3D Printing
-- Recommended process: `MJF`/`SLS`/`SLM`
-- Recommended materials: `PA12`/`PA11`/`3201PA-F`/`3301PA`/`Ti TC4`/`AlSi10Mg`
-
 ### CNC Machining
 - Recommended materials: `Aluminum 7075`
 - STEP files provided for CAM software
+
+### 3D Printing
+- Recommended process: `MJF`/`SLS`/`SLM`
+- Recommended materials: `PA12`/`PA11`/`3201PA-F`/`3301PA`/`Ti TC4`/`AlSi10Mg`
