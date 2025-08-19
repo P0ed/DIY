@@ -135,7 +135,7 @@ def makeBot() -> Workplane:
             box_fc((w - col) / modules - col, col, 2.0, '|Z', ir, c2),
         )),
         com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2 - wt / 2, 1.0)) (
-             lemo(wt).rotate((0, 0, 0), (1, 0, 0), 90)
+             com(roty(90), rotx(90)) (lemo(wt))
         ),
     ])
 
