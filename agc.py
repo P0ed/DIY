@@ -1,7 +1,6 @@
-from math import sin, cos, pi, floor, sqrt
-from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar, Any
+from typing import Callable, List
 from functools import reduce
-from cadquery import Vector, Workplane
+from cadquery import Workplane
 from ocp_vscode import show
 
 import sys, os
@@ -18,11 +17,12 @@ m4dr: float = 3.3 / 2
 wt: float = 3.0
 wt2: float = 1.5
 
+units: int = 3
 cw: float = 4 * inch
 ch: float = 6 * inch
 col: float = 12.0
 hol: float = col / 2
-w: float = 4.5 * inch
+w: float = units * cw + 0.5 * inch
 h: float = 7 * inch
 t: float = 30.0
 t2: float = t / 2.0
@@ -72,18 +72,24 @@ def brick(wall: float, dir: float) -> Workplane:
         ),
     ])
 
-def makeTop(ptn: Callable[[int, int], bool]) -> Workplane:
-    hole_large = wp.cylinder(t2, 9.53 / 2 + 0.1)
-    hole_small = wp.cylinder(t2, inch / 8 + 0.1)
-    return dif([
-        brick(wt, -1.0),
-        grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
-        holes(w, h, hol, t2, m4xr),
-        hcuts(w, h, hol, wt * 2, hol * s2).translate((0, 0, t3)),
-        com(mirror('XZ'), mov(0, 1.5 * inch, t3)) (
-            box_fc(cw - wt, 3 * inch - wt, 2.0, '|Z', ir, c2)
-        ),
-    ])
+def makeTop(ptn: Callable[[int, int], bool] = ptn_all) -> Workplane:
+	hole_large = wp.cylinder(t2, 9.53 / 2 + 0.1)
+	hole_small = wp.cylinder(t2, inch / 8 + 0.1)
+
+	return dif([
+		brick(wt, -1.0),
+		com(mov(-cw / 2 * (units - 1)), sum) ([
+			com(mov(cw * i), sum) ([
+				grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
+				com(mirror('XZ'), mov(0, 1.5 * inch, t3)) (
+					box_fc(cw - wt, ch / 2 - wt, 2.0, '|Z', ir, c2)
+				),
+			])
+			for i in range(units)
+		]),
+		holes(w, h, hol, t2, m4xr),
+		hcuts(w, h, hol, wt * 2, hol * s2).translate((0, 0, t3)),
+	])
 
 def makeBot() -> Workplane:
     return dif([
@@ -111,15 +117,15 @@ def threadCut(body: Workplane) -> Workplane:
 	)
 
 bot: Workplane = makeBot()
-top: Workplane = makeTop(ptn_all)
+top: Workplane = makeTop()
 stk: List[Workplane] = [
 	mov(z = -t3 - pl) (bot),
 	mov(z = t3 + pl) (top),
 ]
-thd: Workplane = threadCut(bot)
+# thd: Workplane = threadCut(1, bot)
 
 export('AGC01', bot)
 export('AGC10', top)
 export('AGC11', sum(stk), step = False)
-export('AGC01_Thread', thd, hidden = False, stl = False, step = False)
+# export('AGC01_Thread', thd, stl = False, step = False)
 show(stk)
