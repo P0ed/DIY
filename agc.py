@@ -17,12 +17,12 @@ m4dr: float = 3.3 / 2
 wt: float = 3.0
 wt2: float = 1.5
 
-units: int = 1
+modules: int = 1
 cw: float = 4 * inch
 ch: float = 6 * inch
 col: float = 12.0
 hol: float = col / 2
-w: float = units * cw + 0.5 * inch
+w: float = modules * cw + 0.5 * inch
 h: float = 7 * inch
 t: float = 30.0
 t2: float = t / 2.0
@@ -38,9 +38,9 @@ def box_fc(w, h, t, fe, fr, c) -> Workplane:
 		.edges().chamfer(c)
 	)
 
-def unit(tfm: Callable[[int], Workplane]) -> Workplane:
-	return com(mov(-cw / 2 * (units - 1)), sum) ([
-		com(mov(i * cw), tfm) (i) for i in range(units)
+def module(tfm: Callable[[int], Workplane]) -> Workplane:
+	return com(mov(-cw / 2 * (modules - 1)), sum) ([
+		com(mov(i * cw), tfm) (i) for i in range(modules)
 	])
 
 def lcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
@@ -81,8 +81,8 @@ def brick(wall: float, dir: float) -> Workplane:
 		),
 		com2(mov(0, 0, wall * dir), sum) ([
 			box_fc(w - col, h - col * 2, t2, '|Z', ir, c2),
-			unit(lambda i: box_fc(
-				(w - col) / units - col, h - wt * 2, t2, '|Z', ir, c2
+			module(lambda i: box_fc(
+				(w - col) / modules - col, h - wt * 2, t2, '|Z', ir, c2
 			)),
 		]),
 		mirror('YZ') (
@@ -97,7 +97,7 @@ def makeTop(ptn: Callable[[int, int], bool] = ptn_all) -> Workplane:
 
 	return dif([
 		brick(wt, -1.0),
-		unit(lambda i: sum([
+		module(lambda i: sum([
 			grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
 			com(mirror('XZ'), mov(0, 1.5 * inch, t3)) (
 				box_fc(cw - wt, ch / 2 - wt, 2.0, '|Z', ir, c2)
@@ -105,11 +105,11 @@ def makeTop(ptn: Callable[[int, int], bool] = ptn_all) -> Workplane:
 		])),
 		holes(w, h, hol, hol, t2, m4xr),
 		lcuts(w, h, hol, wt * 2, hol * s2).translate((0, 0, t3)),
-		*([] if units != 2 else [
+		*([] if modules != 2 else [
 			holes(0, h, 0, hol, t2, m4xr),
 			ucuts(0, h, hol, wt * 2, hol * s2).translate((0, 0, t3))
 		]),
-		*([] if units != 3 else [
+		*([] if modules != 3 else [
 			holes(0, h, cw / 2, hol, t2, m4xr),
 			ucuts(cw, h, hol, wt * 2, hol * s2).translate((0, 0, t3))
 		]),
@@ -120,21 +120,21 @@ def makeBot() -> Workplane:
         brick(wt, 1.0),
         holes(w, h, hol, hol, t2, m4dr),
         mov(0, 0, -t3 / 2) (holes(w, h, hol, hol, t3, m4xr)),
-		*([] if units != 2 else [
+		*([] if modules != 2 else [
 			holes(0, h, 0, hol, t2, m4dr),
 			mov(z = -t3 / 2) (holes(0, h, 0, hol, t3, m4xr)),
 		]),
-		*([] if units != 3 else [
+		*([] if modules != 3 else [
 			holes(0, h, cw / 2, hol, t2, m4dr),
 			mov(z = -t3 / 2) (holes(0, h, cw / 2, hol, t3, m4xr)),
 		]),
         com(mirror('XZ'), mov(0, (h / 2 - col + wt2) / 2, wt - t3)) (
             box_fc(w - 4 * wt, h / 2 - col - wt2, 2.0, '|Z', ir, c2)
         ),
-		unit(lambda i: com(mirror('XZ'), mov(0, (h - col) / 2 - wt, wt - t3)) (
-            box_fc((w - col) / units - col, col, 2.0, '|Z', ir, c2),
+		module(lambda i: com(mirror('XZ'), mov(0, (h - col) / 2 - wt, wt - t3)) (
+            box_fc((w - col) / modules - col, col, 2.0, '|Z', ir, c2),
         )),
-        com(mirror('YZ'), mov((units * 2 - 1) * inch, h / 2 - wt / 2, 1.0)) (
+        com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2 - wt / 2, 1.0)) (
              lemo(wt).rotate((0, 0, 0), (1, 0, 0), 90)
         ),
     ])
@@ -149,8 +149,8 @@ def threadCut(body: Workplane) -> Workplane:
 	)
 
 for i in range(3):
-	units = i + 1
-	w = units * cw + 0.5 * inch
+	modules = i + 1
+	w = modules * cw + 0.5 * inch
 
 	bot: Workplane = makeBot()
 	top: Workplane = makeTop()
@@ -160,8 +160,8 @@ for i in range(3):
 	]
 
 	if i == 0: export(f'AGC-01T', threadCut(bot), stl = False, step = False)
-	export(f'AGC-{units}U-01', bot)
-	export(f'AGC-{units}U-10', top)
-	export(f'AGC-{units}U-11', sum(stk), step = False)
+	export(f'AGC-{modules}M-01', bot)
+	export(f'AGC-{modules}M-10', top)
+	export(f'AGC-{modules}M-11', sum(stk), step = False)
 
 	if i == 2: show(stk)

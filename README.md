@@ -1,39 +1,22 @@
 # CNC and 3D Printing Cases
 
-A Python-based CAD project for generating parametric enclosures and panels using CadQuery. This project creates STL and STEP files for CNC machining and 3D printing of electronic enclosures.
-
-## Project Overview
-
-This repository contains two main case designs:
+A Python-based CAD project for generating parametric enclosures and panels using CadQuery. This project creates STL, STEP, and SVG files for CNC machining and 3D printing of electronic enclosures with advanced threading support.
 
 ### AGC (Apollo Guidance Computer) Case
-A replica enclosure inspired by the Apollo Guidance Computer, featuring:
-- Modular top and bottom sections
-- Configurable hole patterns for different panel layouts
-- M4 mounting holes with proper clearances
-- LEMO B0 connector cutouts
-- Chamfered edges and professional finish
+An enclosure inspired by the Apollo Guidance Computer. Features include:
+- **Multi-module configurations**
+- **Configurable hole patterns**
+- **M4 threads**
+- **LEMO connector cutouts**
 
 ## Features
 
-- **Parametric Design**: All dimensions are configurable through variables
-- **Multiple Export Formats**: Generates both STL (for 3D printing) and STEP (for CNC) files
-- **Pattern System**: Configurable hole patterns for different use cases
-- **Professional Finish**: Chamfers, fillets, and proper tolerances
-- **Modular Architecture**: Reusable components and functions
-
-## Project Structure
-
-```
-├── README.md          # This file
-├── agc.py             # AGC case generator
-├── lib/
-│   ├── __init__.py
-│   ├── ddd.py         # 3D modeling utilities
-│   └── tools.py       # Common functions and patterns
-├── STL/               # Generated STL files
-└── STEP/              # Generated STEP files
-```
+- **Parametric Design**: All dimensions are configurable
+- **Multiple Export Formats**: Generates STL (3D printing), STEP (CNC), and SVG (technical drawings)
+- **Pattern System**: Configurable hole patterns including diamond, X, W, and custom layouts
+- **Multi-module Support**: 1M, 2M, and 3M case configurations for different setups
+- **Technical Drawings**: Automatic SVG generation with three-view projections
+- **Serge Compatibility**: Designed for 4×6 inch PCBs and Paperface era 1 inch control spacings.
 
 ## Requirements
 
@@ -58,67 +41,18 @@ A replica enclosure inspired by the Apollo Guidance Computer, featuring:
 python agc.py
 ```
 
-This generates:
-- `STL/AGC01.stl` - Top section
-- `STL/AGC10.stl` - Bottom section  
-- `STL/AGC11.stl` - Complete assembly
-- `STEP/AGC01.step` - Top section (CNC)
-- `STEP/AGC10.step` - Bottom section (CNC)
+This generates files for all three unit configurations:
 
-### Generate Typ-I Case Files
+**1M Configuration:**
+- `STL/AGC-1M-01.stl` - Bottom section
+- `STL/AGC-1M-10.stl` - Top section  
+- `STL/AGC-1M-11.stl` - Complete assembly
+- `STEP/AGC-1M-01.step` - Bottom section (CNC)
+- `STEP/AGC-1M-10.step` - Top section (CNC)
+- `SVG/AGC-1M-*.svg`, `AGC-01T.svg` - Technical drawings
 
-```bash
-python typ_i.py
-```
-
-This generates:
-- `Case.stl` - Main enclosure
-- `Panel.stl` - Front panel with default pattern
-- `Case_x_Panel.stl` - Complete assembly
-- `Panel_*.stl` - Panels with different hole patterns
-
-## Configuration
-
-### AGC Case Parameters
-
-Key dimensions in `agc.py`:
-- `w`, `h`: Overall case dimensions (4.5" × 7")
-- `t`: Case thickness (30mm)
-- `wt`: Wall thickness (3mm)
-- `col`: Corner offset for mounting holes
-- `m4xr`, `m4dr`: M4 screw hole radii
-
-### Typ-I Case Parameters
-
-Key dimensions in `typ_i.py`:
-- `mw`, `h`: Module dimensions (4.25" × 7")
-- `t`: Case depth (30mm)
-- `wt1`, `wt2`, `wt3`: Various wall thicknesses
-- `cell`: Grid cell size (1 inch)
-
-### Hole Patterns
-
-Available patterns (defined in `lib/tools.py`):
-- `"ll"`: vertical columns only
-- `"w"`: W-shaped pattern
-- `"<>"`: Diamond pattern
-- `"x"`: X-shaped pattern
-- `ptn_all`: All holes (default)
-
-## Library Functions
-
-### `lib/ddd.py`
-- `mov(x, y, z)`: Translation function
-- `mirror(*plane)`: Mirroring operations
-- `grid(tfm)`: 4×6 grid layout generator
-- `lemo(wt)`: LEMO connector cutout
-- `holes()`: Mounting hole patterns
-
-### `lib/tools.py`
-- Mathematical constants and unit conversions
-- Functional programming utilities (`com`, `sum`, `dif`)
-- Pattern definitions and mapping functions
-- Type definitions for better code clarity
+**2M and 3M Configurations:**
+- Similar naming pattern with `2M` and `3M` designations
 
 ## Images
 
@@ -130,12 +64,96 @@ The AGC case design:
 <img width="640" alt="AGC" src="https://github.com/user-attachments/assets/65121879-15d9-4e74-9665-d9e2e4905170" />
 <img width="640" alt="AGC01-Thread-Spec" src="https://github.com/user-attachments/assets/4fb63d46-3658-4474-a71f-17102c37c6ca" />
 
+## Project Structure
+
+```
+├── README.md          # This file
+├── agc.py             # AGC case generator (main script)
+├── lib/
+│   ├── __init__.py
+│   ├── ddd.py         # 3D modeling utilities and transformations
+│   ├── tools.py       # Common functions, patterns, and utilities
+│   ├── thread.py      # ISO/UTS thread generation system
+│   └── export.py      # Multi-format export with technical drawings
+├── STL/               # Generated STL files for 3D printing
+├── STEP/              # Generated STEP files for CNC machining
+└── SVG/               # Generated technical drawings
+```
+
+## Configuration
+
+### AGC Case Parameters
+
+Key dimensions in `agc.py`:
+- `modules`: Number of units (1, 2, or 3)
+- `cw`, `ch`: Module card dimensions (4" × 6")
+- `w`, `h`, `t`: Overall case dimensions
+- `wt`: Wall thickness (3mm)
+- `col`: Mounting column width (12mm)
+
+### Hole Patterns
+
+Available patterns (defined in `lib/tools.py`):
+- `"ll"`: Vertical columns only
+- `"w"`: W-shaped pattern
+- `"<>"`: Diamond pattern
+- `"x"`: X-shaped pattern
+- `ptn_all`: All holes
+- Custom patterns can be defined as boolean functions for specific module requirements
+
+## Library Functions
+
+### `lib/ddd.py` - 3D Modeling Utilities
+- `mov(x, y, z)`: Translation function
+- `mirror(*plane)`: Mirroring operations with union
+- `rotz(angle)`: Z-axis rotation
+- `grid(tfm)`: 4×6 grid layout generator
+- `lemo(wt)`: LEMO connector cutout
+- `holes()`: Mounting hole patterns
+- `bounds()`: Bounding box calculation
+
+### `lib/tools.py` - Utilities and Patterns
+- Mathematical constants: `inch`, `s2`, `pl`
+- Functional programming utilities: `com`, `sum`, `dif`, `flat`
+- Pattern definitions and mapping functions
+- Boolean pattern combinators
+
+### `lib/thread.py` - Threading System
+- Thread Generation: `thread(size, length, location, segments)`
+
+### `lib/export.py` - Export System
+- **Multi-format Export**: STL, STEP, SVG generation
+- `export(name, workplane, stl, svg, step, hidden)`: Main export function
+- **Technical Drawings**: Three-view projections with proper scaling
+- `three_view()`: Generates orthographic projections
+
+## Threading Support
+
+```python
+from lib.thread import thread
+
+# Generate M4 internal thread, 15mm long
+internal_thread = thread('M4', 15.0, 'internal')
+
+# Generate M4 external thread, 10mm long  
+external_thread = thread('M4', 10.0, 'external')
+```
+
+**Supported Thread Standards:**
+- **ISO Metric**: M2 through M24 with standard and fine pitches
+- **UTS (Unified Thread Standard)**: Common sizes from #2 to 1"
+- **Custom Threads**: Extensible system for additional thread types
+
 ## Manufacturing Notes
 
 ### CNC Machining
-- Recommended materials: `Aluminum 7075`
-- STEP files provided for CAM software
+- **Recommended Materials**: Aluminum 7075
+- **STEP Files**: Provided for CAM software compatibility
+- **Threading**: Can be tapped or thread-milled using generated specifications
+- **Tolerances**: Designed for ±0.1mm machining accuracy
 
 ### 3D Printing
-- Recommended process: `MJF`/`SLS`/`SLM`
-- Recommended materials: `PA12`/`PA11`/`3201PA-F`/`3301PA`/`Ti TC4`/`AlSi10Mg`
+- **Recommended Processes**: `SLM`, `MJF`, `SLS`
+- **Recommended Materials**:
+  - **Metals**: `Ti TC4`, `AlSi10Mg`
+  - **Plastics**: `PA12`, `PA11`, `3201PA-F`, `3301PA`
