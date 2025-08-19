@@ -1,22 +1,28 @@
 # CNC and 3D Printing Cases
 
-A Python-based CAD project for generating parametric enclosures and panels using CadQuery. This project creates STL, STEP, and SVG files for CNC machining and 3D printing of electronic enclosures with advanced threading support.
+A Python-based CAD project for generating parametric enclosures and panels using CadQuery. This project creates STL, STEP, and SVG files for CNC machining and 3D printing of enclosures with threading support.
 
-### AGC (Apollo Guidance Computer) Case
-An enclosure inspired by the Apollo Guidance Computer. Features include:
-- **Multi-module configurations**
-- **Configurable hole patterns**
-- **M4 threads**
-- **LEMO connector cutouts**
+### AGC Case
+An enclosure inspired by the Apollo Guidance Computer.
 
 ## Features
 
 - **Parametric Design**: All dimensions are configurable
-- **Multiple Export Formats**: Generates STL (3D printing), STEP (CNC), and SVG (technical drawings)
 - **Pattern System**: Configurable hole patterns including diamond, X, W, and custom layouts
 - **Multi-module Support**: 1M, 2M, and 3M case configurations for different setups
-- **Technical Drawings**: Automatic SVG generation with three-view projections
+- **Multiple Export Formats**: Generates STL (3D printing), STEP (CNC), and SVG (technical drawings)
+- **LEMO connector cutouts**: for EGG.0B.305.CLL miniature power and data socket
 - **Serge Compatibility**: Designed for 4×6 inch PCBs and Paperface era 1 inch control spacings.
+
+## Images
+
+The AGC case design:
+
+<img width="640" alt="back" src="https://github.com/user-attachments/assets/2b7f5edb-d0ec-4cd6-b03e-41857a65d4e9" />
+<img width="640" alt="top" src="https://github.com/user-attachments/assets/1ec490e0-bd97-4850-b158-a097b2be7ce7" />
+<img width="640" alt="side" src="https://github.com/user-attachments/assets/d5fdf7ed-cecb-4f92-9b72-a1102162a627" />
+<img width="640" alt="AGC" src="https://github.com/user-attachments/assets/65121879-15d9-4e74-9665-d9e2e4905170" />
+<img width="640" alt="AGC01-Thread-Spec" src="https://github.com/user-attachments/assets/4fb63d46-3658-4474-a71f-17102c37c6ca" />
 
 ## Requirements
 
@@ -41,7 +47,7 @@ An enclosure inspired by the Apollo Guidance Computer. Features include:
 python agc.py
 ```
 
-This generates files for all three unit configurations:
+This generates files for all modules configurations:
 
 **1M Configuration:**
 - `STL/AGC-1M-01.stl` - Bottom section
@@ -53,32 +59,6 @@ This generates files for all three unit configurations:
 
 **2M and 3M Configurations:**
 - Similar naming pattern with `2M` and `3M` designations
-
-## Images
-
-The AGC case design:
-
-<img width="640" alt="back" src="https://github.com/user-attachments/assets/2b7f5edb-d0ec-4cd6-b03e-41857a65d4e9" />
-<img width="640" alt="top" src="https://github.com/user-attachments/assets/1ec490e0-bd97-4850-b158-a097b2be7ce7" />
-<img width="640" alt="side" src="https://github.com/user-attachments/assets/d5fdf7ed-cecb-4f92-9b72-a1102162a627" />
-<img width="640" alt="AGC" src="https://github.com/user-attachments/assets/65121879-15d9-4e74-9665-d9e2e4905170" />
-<img width="640" alt="AGC01-Thread-Spec" src="https://github.com/user-attachments/assets/4fb63d46-3658-4474-a71f-17102c37c6ca" />
-
-## Project Structure
-
-```
-├── README.md          # This file
-├── agc.py             # AGC case generator (main script)
-├── lib/
-│   ├── __init__.py
-│   ├── ddd.py         # 3D modeling utilities and transformations
-│   ├── tools.py       # Common functions, patterns, and utilities
-│   ├── thread.py      # ISO/UTS thread generation system
-│   └── export.py      # Multi-format export with technical drawings
-├── STL/               # Generated STL files for 3D printing
-├── STEP/              # Generated STEP files for CNC machining
-└── SVG/               # Generated technical drawings
-```
 
 ## Configuration
 
@@ -106,11 +86,10 @@ Available patterns (defined in `lib/tools.py`):
 ### `lib/ddd.py` - 3D Modeling Utilities
 - `mov(x, y, z)`: Translation function
 - `mirror(*plane)`: Mirroring operations with union
-- `rotz(angle)`: Z-axis rotation
+- `rotx(angle), roty(angle), rotz(angle)`: Single axis rotation
 - `grid(tfm)`: 4×6 grid layout generator
 - `lemo(wt)`: LEMO connector cutout
 - `holes()`: Mounting hole patterns
-- `bounds()`: Bounding box calculation
 
 ### `lib/tools.py` - Utilities and Patterns
 - Mathematical constants: `inch`, `s2`, `pl`
