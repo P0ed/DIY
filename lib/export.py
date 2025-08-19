@@ -21,25 +21,28 @@ def three_view(wp: Workplane) -> Workplane:
 	])
 
 def render(path: str, wp: Workplane, hidden: bool = False):
+	box: BoundBox = bounds(wp)
 	view = three_view(wp).rotate((0, 0, 0), (0, 1, 0), 90)
 	margin: float = 30.0
+	isLarge: bool = box.xlen > 100
+	line: float = 0.3 if isLarge else 0.075
 
 	view.export(path, opt = {
-		"width": 1280,
-		"height": 960,
-		"marginLeft": margin,
-		"marginTop": margin,
-		"showAxes": False,
-		"projectionDir": (0, -1, 0),
-		"strokeWidth": 0.25,
-		"strokeColor": (8, 8, 8),
-		"hiddenColor": (223, 223, 223),
-		"showHidden": hidden,
+		'width': 800,
+		'height': 800,
+		'marginLeft': margin,
+		'marginTop': margin,
+		'showAxes': False,
+		'projectionDir': (0, -1, 0),
+		'strokeWidth': line,
+		'strokeColor': (8, 8, 8),
+		'hiddenColor': (223, 223, 223),
+		'showHidden': hidden,
 	})
 
 def export(name: str, wp: Workplane, stl: bool = True, svg: bool = True, step: bool = True, hidden: bool = False):
-	[os.makedirs(dir, exist_ok=True) for dir in ["STL", "STEP", "SVG"]]
+	[os.makedirs(dir, exist_ok=True) for dir in ['STL', 'STEP', 'SVG']]
 
-	if stl: wp.export("STL/" + name + ".stl")
-	if svg: render("SVG/" + name + ".svg", wp, hidden = hidden)
-	if step: wp.export("STEP/" + name + ".step")
+	if stl: wp.export('STL/' + name + '.stl')
+	if svg: render('SVG/' + name + '.svg', wp, hidden = hidden)
+	if step: wp.export('STEP/' + name + '.step')

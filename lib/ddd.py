@@ -13,6 +13,9 @@ def mov(x: float = 0.0, y: float = 0.0, z: float = 0.0) -> Callable[[Workplane],
 def mirror(*plane: str) -> Callable[[Workplane], Workplane]:
 	return lambda wp: reduce(lambda r, p: r.mirror(p, union = True), plane, wp)
 
+def rotz(a: float) -> Callable[[Workplane], Workplane]:
+	return lambda wp: wp.rotate((0, 0, 0), (0, 0, 1), a)
+
 def grid(tfm: Callable[[int, int], Workplane]) -> Workplane:
     return sum([tfm(x, y).translate(((x - 1.5) * inch, (y - 2.5) * inch, 0)) for x in range(4) for y in range(6)])
 
