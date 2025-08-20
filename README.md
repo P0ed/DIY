@@ -33,8 +33,8 @@ The AGC case design:
 
 ## Installation
 
-1. Install CadQuery following the [official installation guide](https://cadquery.readthedocs.io/en/latest/installation.html)
-2. Clone this repository:
+1. Install [CadQuery](https://github.com/CadQuery/cadquery)
+2. Clone the repository:
    ```bash
    git clone https://github.com/P0ed/DIY.git
    cd DIY

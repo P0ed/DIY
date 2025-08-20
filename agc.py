@@ -99,18 +99,18 @@ def agc(modules: int = 1) -> Tuple[Workplane, Workplane, Workplane, List[Workpla
 			module(lambda i: sum([
 				grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
 				com(mirror('XZ'), mov(0, ch / 4, t3)) (
-					box_fc(cw - wt2, ch / 2 - wt2, 2.0, '|Z', ir, c2)
+					box_fc(cw - wt, ch / 2 - wt, 2.0, '|Z', ir, c2)
 				),
 			])),
 			holes(w, h, hol, hol, t2, m4xr),
-			lcuts(w, h, hol, wt * 2, hol * s2).translate((0, 0, t3)),
+			lcuts(w, h, hol, t3, hol * s2).translate((0, 0, t3)),
 			*([] if modules != 2 else [
 				holes(0, h, 0, hol, t2, m4xr),
-				ucuts(0, h, hol, wt * 2, hol * s2).translate((0, 0, t3))
+				ucuts(0, h, hol, t3, hol * s2).translate((0, 0, t3))
 			]),
 			*([] if modules != 3 else [
 				holes(0, h, cw / 2, hol, t2, m4xr),
-				ucuts(cw, h, hol, wt * 2, hol * s2).translate((0, 0, t3))
+				ucuts(cw, h, hol, t3, hol * s2).translate((0, 0, t3))
 			]),
 		])
 
