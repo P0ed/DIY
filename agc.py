@@ -2,6 +2,7 @@ from typing import Callable, List
 from functools import reduce
 from cadquery import Workplane
 from ocp_vscode import show
+from random import random
 
 import sys, os
 sys.path.append(os.path.abspath('.'))
@@ -10,7 +11,11 @@ from lib.tools import *
 from lib.export import export
 from lib.thread import thread
 
-def agc(modules: int = 1) -> Tuple[Workplane, Workplane, Workplane, List[Workplane]]:
+def agc(
+		modules: int = 1,
+		pattern: Callable[[int], Pattern] = lambda i: ptn_all,
+		threads: bool = False
+	) -> Tuple[Workplane, Workplane, Workplane, List[Workplane]]:
 	
 	m4r: float = 4.0 / 2
 	m4xr: float = 4.2 / 2
@@ -99,18 +104,18 @@ def agc(modules: int = 1) -> Tuple[Workplane, Workplane, Workplane, List[Workpla
 			module(lambda i: sum([
 				grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
 				com(mirror('XZ'), mov(0, ch / 4, t3)) (
-					box_fc(cw - wt, ch / 2 - wt, 2.0, '|Z', ir, c2)
+					box_fc(cw, ch / 2, 2.0, '|Z', ir, c2)
 				),
 			])),
 			holes(w, h, hol, hol, t2, m4xr),
-			lcuts(w, h, hol, t3, hol * s2).translate((0, 0, t3)),
+			lcuts(w, h, hol, t3, hol * s22).translate((0, 0, t3)),
 			*([] if modules != 2 else [
 				holes(0, h, 0, hol, t2, m4xr),
-				ucuts(0, h, hol, t3, hol * s2).translate((0, 0, t3))
+				ucuts(0, h, hol, t3, hol * s22).translate((0, 0, t3))
 			]),
 			*([] if modules != 3 else [
 				holes(0, h, cw / 2, hol, t2, m4xr),
-				ucuts(cw, h, hol, t3, hol * s2).translate((0, 0, t3))
+				ucuts(cw, h, hol, t3, hol * s22).translate((0, 0, t3))
 			]),
 		])
 
@@ -148,22 +153,56 @@ def agc(modules: int = 1) -> Tuple[Workplane, Workplane, Workplane, List[Workpla
 			])
 			.intersect(mov(w / 2, h / 2) (wp.box(col, col * 3, t)))
 		)
+	
+	def wafer(w: float, h: float, t: float, wt: float, ws: float, c = 0.5) -> Workplane:
+		cnt = round((w - wt * 2) / ws)
+		return sum([
+			com(mirror("XZ"), mov(y = h / 2 - wt / 2)) (box(w, wt, t)),
+			com(mirror("YZ"), mov(x = w / 2 - wt / 2)) (box(wt, h, t)),
+			*([
+				mirror("YZ") (mov(ws * i - w / 2, ws * i - h / 2) (
+					rotz(-45) (box(ws * i * 2 * s2, wt, t).chamfer(c))
+				))
+				for i in range(1, cnt)
+			]),
+		]).intersect(
+			box_fc(w, h, t, "|Z", ir, c)
+		)
+
+	def controls() -> Workplane:
+		return module(lambda i: grid(lambda x, y: mov(z = -1) (
+			pomona4mm()
+			if y > 2 else
+			bourns51()
+			if pattern(i)(x, y) else
+			toggle(random() < 0.5)
+			if i == 1 or y != 2 else
+			led5()
+		)))
 
 	bot: Workplane = makeBot()
 	top: Workplane = makeTop()
-	thd: Workplane = threadCut(bot)
+	cts: Workplane = controls()
+	waf: Workplane = module(lambda i: mov(0, -ch / 4) (
+		wafer(cw, ch / 2, 3, 1.5, inch / 8)
+	))
 	stk: List[Workplane] = [
 		mov(z = -t3 - pl) (bot),
 		mov(z = t3 + pl) (top),
+		mov(z = t2) (cts),
+		mov(z = t2) (waf)
 	]
-	return (bot, top, thd, stk)
+	thd: Workplane = threadCut(bot) if threads else None
+	return (bot, top, stk, waf, thd) if threads else (bot, top, stk, waf)
 
-for i in range(1, 4):
-	parts = agc(i)
+# units = [agc(i) for i in range(1, 4)]
+# for i, parts in enumerate(units):
+# 	export(f'AGC-{i}M-01', parts[0])
+# 	export(f'AGC-{i}M-10', parts[1])
+# 	export(f'AGC-{i}M-11', sum(parts[2]), step = False)
+# 	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
 
-	export(f'AGC-{i}M-01', parts[0])
-	export(f'AGC-{i}M-10', parts[1])
-	if i == 1: export(f'AGC-01T', parts[2], stl = False, step = False)
-	export(f'AGC-{i}M-11', sum(parts[3]), step = False)
-
-	if i == 2: show(parts[3])
+parts = agc(1, lambda i: ptn_d if i == 1 else ptn_x)
+show(parts[2])
+# export(f'AGC-{1}M-11P', sum(parts[2]), step = False, svg = False)
+# export(f'AGC-{1}M-11W', sum(parts[3]), step = False, svg = False)

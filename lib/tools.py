@@ -5,9 +5,11 @@ from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeV
 from functools import reduce
 
 VectorLike = Union[Tuple[float, float], Tuple[float, float, float], Vector]
+Pattern = Callable[[int, int], bool]
 
 pl: float = 0.001
-s2: float = sqrt(2) / 2
+s2: float = sqrt(2)
+s22: float = s2 / 2
 inch: float = 25.4
 
 A = TypeVar('A')
@@ -27,23 +29,19 @@ def sum(xs: List[Workplane]) -> Workplane:
 def dif(xs: List[Workplane]) -> Workplane:
     return reduce(lambda x, y: x - y, xs)
 
-def und(l: Callable[[int, int], bool], r: Callable[[int, int], bool]) -> Callable[[int, int], bool]:
+def und(l: Pattern, r: Pattern) -> Pattern:
     return lambda x, y: l(x, y) and r(x, y)
+def oder(l: Pattern, r: Pattern) -> Pattern:
+    return lambda x, y: l(x, y) or r(x, y)
+def nicht(r: Pattern) -> Pattern:
+    return lambda x, y: not r(x, y)
 
 ptn_all = lambda x, y: True
 ptn_top = lambda x, y: y > 2
 ptn_bot = lambda x, y: y < 3
 ptn_mdx = lambda x, y: x > 0 and x < 3
+ptn_x = lambda x, y: (x + y % 2 + x // 2) % 2 == 0
+ptn_d = lambda x, y: (x + y % 2 + x // 2) % 2 == 1
 
-patterns: dict[str, Callable[[int, int], bool]] = {
-    "ll": ptn_mdx,
-    "w": lambda x, y: not ((y == 0 and (x == 0 or x == 3)) or (y == 1 and (x == 1 or x == 2))),
-    "<>": lambda x, y: not (((y == 0 or y == 2) and (x == 0 or x == 3)) or (y == 1 and (x == 1 or x == 2))),
-    "x": lambda x, y: ((y == 0 or y == 2) and (x == 0 or x == 3)) or (y == 1 and (x == 1 or x == 2)),
-}
-
-def ptn_map(ptn: Callable[[int, int], bool], true: Callable[[], A], false: Callable[[], A]) -> Callable[[int, int], A]:
+def ptn_map(ptn: Pattern, true: Callable[[], A], false: Callable[[], A]) -> Callable[[int, int], A]:
     return lambda x, y: true() if ptn(x, y) else false()
-
-def pattern(name: str) -> Callable[[int, int], bool]:
-    return und(ptn_bot, patterns[name] or ptn_all)
