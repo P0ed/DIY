@@ -56,7 +56,7 @@ ptn_x = lambda x, y: (x + y % 2 + x // 2) % 2 == 0
 ptn_d = lambda x, y: (x + y % 2 + x // 2) % 2 == 1
 ptn_w = und(ptn_d, lambda x, y: y < 2)
 
-def ptn_map(ptn: Pattern, true: Callable[[], A], false: Callable[[], A]) -> Callable[[int, int], A]:
+def ptn_map(true: Callable[[], A], ptn: Pattern, false: Callable[[], A]) -> Callable[[int, int], A]:
 	return lambda x, y: true() if ptn(x, y) else false()
 
 def ptns_map(*ptns: Tuple[Pattern, Callable[[], A]]) -> Callable[[int, int], Optional[A]]:

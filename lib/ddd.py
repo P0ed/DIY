@@ -8,11 +8,11 @@ from lib.tools import *
 
 wp: Workplane = Workplane()
 
-def bounds(wp: Workplane) -> BoundBox:
-	return wp.combine().objects[0].BoundingBox()
+def bounds(w: Workplane) -> BoundBox:
+	return w.combine().objects[0].BoundingBox()
 
 def mov(x: float = 0.0, y: float = 0.0, z: float = 0.0) -> Callable[[Workplane], Workplane]:
-	return lambda wp: wp.translate((x, y, z))
+	return lambda w: w.translate((x, y, z))
 
 def mirror(*plane: str) -> Callable[[Workplane], Workplane]:
 	return lambda wp: reduce(lambda r, p: r.mirror(p, union = True), plane, wp)
@@ -37,8 +37,8 @@ def grid(tfm: Callable[[int, int], Optional[Workplane]]) -> Workplane:
 		for x in range(4) for y in range(6)
 	]))
 
-def lemo(wt: float) -> Workplane:
-    return cylinder(wt, 9.1 / 2).intersect(wp.box(8.3, 9.1, wt))
+def lemo0BCutout(wt: float) -> Workplane:
+    return cylinder(wt, 9.1 / 2).intersect(box(8.3, 9.1, wt))
 
 def holes(w: float, h: float, l: float, r: float) -> Workplane:
     return com(mirror('XZ', 'YZ'), mov(w, h)) (
@@ -52,6 +52,19 @@ def hexNut(d: float, l: float) -> Workplane:
 		.intersect(
 			wp.circle(d / 2).extrude(l).chamfer(l / 3)
 		)
+	)
+
+def lemoECG0B() -> Workplane:
+	return rotz(90) (
+		mov(z=3.5 / 2) (
+			cylinder(3.5, 9 / 2).intersect(box(9, 8.2, 3.5))
+		)
+		+ mov(z=2.5 / 2) (
+			cylinder(2.5, 12 / 2).edges('>Z').chamfer(1)
+		)
+		- rotz(45) (mirror('XZ', 'YZ') (rotz(-45) (mov(6) (
+			box(1.4, 1.5, 5)
+		))))
 	)
 
 def pomona1581() -> Workplane:
@@ -74,9 +87,9 @@ def toggle(pos: Optional[bool] = None) -> Workplane:
 
 def knob(angle: Optional[float] = None) -> Workplane:
 	angle = random() * 120 - 60 if angle is None else angle
-	return com(rotz(angle), mov(z = 6.0)) (
+	return com(rotz(angle), mov(z = 6.35)) (
 		dif([
-			rotz(90) (cylinder(12.0, 6.35)),
+			rotz(90) (cylinder(12.7, 6.35)),
 			com(mirror('YZ'), mov(13.5, 0, 8), roty(75)) (box(20, 20, 20)),
 		])
 		.edges('>Z').chamfer(0.15)
@@ -87,10 +100,10 @@ def knob(angle: Optional[float] = None) -> Workplane:
 def bourns51(angle: Optional[float] = None) -> Workplane:
 	angle = random() * 120 - 60 if angle is None else angle
 	return (
-		com(mov(z = 2.75), rotz(90)) (
-			cylinder(5.5, 9.5 / 2).edges('>Z').chamfer(0.5)
+		com(mov(z = 2.5), rotz(90)) (
+			cylinder(5, 9.5 / 2).edges('>Z').chamfer(0.5)
 		)
-		+ com(mov(z = 4.5 + 5), rotz(90 + angle)) (
+		+ com(mov(z = 4 + 5), rotz(90 + angle)) (
 			cylinder(10, 6.35 / 2).edges('>Z').chamfer(0.5)
 			- mov(z = 5) (box(7, 1.5, 3))
 		)
@@ -100,6 +113,13 @@ def bourns51(angle: Optional[float] = None) -> Workplane:
 def led5() -> Workplane:
 	return rotz(90) (
 		wp.circle(2.5).extrude(4.5).edges('>Z').fillet(2.499)
+	)
+
+def clb300() -> Workplane:
+	sph = lambda z: mov(z=z) (wp.sphere(8))
+	return rotz(90) (
+		mov(z=0.9) (sph(7.2).intersect(sph(-7.2)))
+		+ cylinder(1.8, 7.11 / 2)
 	)
 
 def frame(w: float, h: float, t: float, wt: float, c: float = 0.5, ir: float = 2.0) -> Workplane:

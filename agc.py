@@ -34,6 +34,7 @@ def agc(
 	t3: float = t2 / 2.0
 	c1: float = 1.0
 	c2: float = 0.5
+	crh: float = (2 - s2) * hol
 	ir: float = 2.0
 
 	def box_fc(w, h, t, fe, fr, c) -> Workplane:
@@ -61,18 +62,17 @@ def agc(
 		)
 
 	def brick(wall: float, dir: float) -> Workplane:
-		cr6: float = (2 - s2) * 6
 		return dif([
 			(
 				box(w, h, t2)
-				.edges('+Z').chamfer(cr6)
+				.edges('+Z').chamfer(crh)
 				.edges('<Z').chamfer(c2)
 
 				if dir > 0 else
 
 				box(w, h, t2)
 				.edges('+Z' if dir > 0 else '+Z or >Z')
-				.chamfer(cr6)
+				.chamfer(crh)
 			),
 			com(mov(0, 0, wall * dir), sum) ([
 				box_fc(w - col, h - col * 2, t2, '|Z', ir, c2),
@@ -87,29 +87,22 @@ def agc(
 		])
 
 	def makeTop() -> Workplane:
-		hlg = lambda: cylinder(t2, 9.53 / 2 + 0.05)
-		hsm = lambda: cylinder(t2, 6.35 / 2 + 0.05)
-
 		return dif([
 			brick(wt, -1.0),
-			module(lambda i: sum([
-				grid(ptns_map(
-					(oder(ptn_top, potsPtn(i)), hlg),
-					(ptn_all, hsm),
-				)),
-				# com(mirror('XZ'), mov(0, ch / 4, t3)) (
-				# 	box_fc(cw - wt2, ch / 2 - wt2, 2.0, '|Z', ir, c2)
-				# ),
-			])),
+			module(lambda i: grid(ptn_map(
+				lambda: cylinder(t2, 9.53 / 2 + 0.05),
+				oder(ptn_top, potsPtn(i)),
+				lambda: cylinder(t2, 6.35 / 2 + 0.05)
+			))),
 			holes(w / 2 - hol, h / 2 - hol, t2, m4xr),
 			lcuts(w, h, hol, wt * 2, hol * s22).translate((0, 0, t3)),
 			*([] if modules != 2 else [
 				holes(0, h / 2 - hol, t2, m4xr),
-				ucuts(0, h, hol, t3, hol * s22).translate((0, 0, t3))
+				ucuts(0, h, hol, wt * 2, hol * s22).translate((0, 0, t3))
 			]),
 			*([] if modules != 3 else [
 				holes(cw / 2, h / 2 - hol, t2, m4xr),
-				ucuts(cw, h, hol, t3, hol * s22).translate((0, 0, t3))
+				ucuts(cw, h, hol, wt * 2, hol * s22).translate((0, 0, t3))
 			]),
 		])
 
@@ -133,7 +126,7 @@ def agc(
 				box_fc((w - col) / modules - col, col, 2.0, '|Z', ir, c2),
 			))),
 			com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2 - wt2, 1.25)) (
-				com(roty(90), rotx(90)) (lemo(wt))
+				com(roty(90), rotx(90)) (lemo0BCutout(wt))
 			),
 		])
 
@@ -153,39 +146,45 @@ def agc(
 			(ptn_top, pomona1581),
 			(potsPtn(i), bourns51),
 			(tglsPtn(i), toggle),
-			(ptn_all, led5),
-		)))
+			(ptn_all, clb300),
+		))) \
+		+ com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2, 1.25 - t * 0.75)) (
+			com(rotz(180), roty(90), rotx(90)) (lemoECG0B())
+		)
 
 	def extraLove() -> Workplane:
 		return module(lambda i: grid(ptns_map(
 			(potsPtn(i), knob),
 		)))
 
-	bot: Workplane = makeBot()
-	top: Workplane = makeTop()
-	cts: Workplane = controls()
-	xtr: Workplane = extraLove()
+	bot = makeBot()
+	top = makeTop()
+	cts = controls()
+	xtr = extraLove()
+	thd = threadCut(bot) if threads else None
 
 	return [
 		mov(z = -t3 - pl) (bot),
 		mov(z = t3 + pl) (top),
 		mov(z = t2 + pl) (cts),
-		mov(z = t2 + 6) (xtr),
-	] + (
-		[threadCut(bot)] if threads else []
-	)
+		mov(z = t2 + 5.5) (xtr),
+		*([] if thd is None else [thd]),
+	]
 
+offsets = lambda i: mov(
+	7.5 * inch if i == 2 else 4 * inch if i == 3 else 0, 8 * inch if i == 3 else 0
+)
 units = [
-	map_lst(mov(200 if i == 2 else 125 if i == 3 else 0, 200 if i == 3 else 0)) (
+	map_lst(offsets(i)) (
 		agc(i, const(und(ptn_bot, ptn_x)), const(und(ptn_bot, ptn_w)))
 	)
-	for i in range(1, 4)
+	for i in range(1, 2)
 ]
 
-for i, parts in enumerate(units):
-	export(f'AGC-{i}M-01', parts[0])
-	export(f'AGC-{i}M-10', parts[1])
-	export(f'AGC-{i}M-11', sum([parts[0], parts[1]]), step = False)
-	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
+# for i, parts in enumerate(units):
+# 	export(f'AGC-{i}M-01', parts[0])
+# 	export(f'AGC-{i}M-10', parts[1])
+# 	export(f'AGC-{i}M-11', sum([parts[0], parts[1]]), step = False)
+# 	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
 
 show(units)
