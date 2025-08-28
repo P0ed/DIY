@@ -176,7 +176,7 @@ def agc(
 	)
 
 units = [
-	map_lst(mov(150 if i == 2 else 0, 200 if i == 3 else 0)) (
+	map_lst(mov(200 if i == 2 else 125 if i == 3 else 0, 200 if i == 3 else 0)) (
 		agc(i, const(und(ptn_bot, ptn_x)), const(und(ptn_bot, ptn_w)))
 	)
 	for i in range(1, 4)
@@ -189,5 +189,3 @@ for i, parts in enumerate(units):
 	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
 
 show(units)
-
-# show(knob())
