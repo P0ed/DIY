@@ -13,7 +13,8 @@ from lib.thread import thread
 
 def agc(
 		modules: int = 1,
-		pattern: Callable[[int], Pattern] = lambda i: ptn_all,
+		potsPtn: Callable[[int], Pattern] = lambda i: ptn_x,
+		tglsPtn: Callable[[int], Pattern] = lambda i: ptn_d,
 		threads: bool = False
 	) -> Tuple[Workplane, Workplane, Workplane, List[Workplane]]:
 	
@@ -72,49 +73,55 @@ def agc(
 		])
 
 	def brick(wall: float, dir: float) -> Workplane:
+		cl: float = (2 - s2) * 6
 		return dif([
 			(
-				wp.box(w, h, t2)
-				.edges('+Z').chamfer(wt2 * 3)
-				.intersect(
-					wp.box(w, h, t2 + c1)
-					.edges('+Z').chamfer(wt2 * 3)
-					.edges('not +Z').chamfer(c2)
-					.translate((0, 0, c2 * dir))
-				)
+				box(w, h, t2)
+				.edges('+Z' if dir > 0 else '+Z or (+Y and >Z)')
+				.chamfer(cl)
+				.edges('<Z' if dir > 0 else '>Z and +X').chamfer(c2)
+
+				# .edges('+Z' if dir > 0 else '+Z or (+Y and >Z)')
+				# .chamfer(cl)
+				# .edges('<Z' if dir > 0 else '>Z and +X').chamfer(c2)
 			),
-			com2(mov(0, 0, wall * dir), sum) ([
+			com(mov(0, 0, wall * dir), sum) ([
 				box_fc(w - col, h - col * 2, t2, '|Z', ir, c2),
 				module(lambda i: box_fc(
 					(w - col) / modules - col, h - wt * 2, t2, '|Z', ir, c2
 				)),
 			]),
 			mirror('YZ') (
-				box_fc(wt * 2, h - col * 2, t2 + 4.0, '|X', ir, c2)
-				.translate((w / 2, 0, -wt - 2.0 if dir != 1 else 0))
+				box_fc(wt * 2, h - col * 2, t2 + ir * 2, '|X', ir, c2)
+				.translate((w / 2, 0, -wt * 2 - ir if dir != 1 else 0))
 			),
 		])
 
-	def makeTop(ptn: Callable[[int, int], bool] = ptn_all) -> Workplane:
-		hole_large = wp.cylinder(t2, 9.53 / 2 + 0.1)
-		hole_small = wp.cylinder(t2, inch / 8 + 0.1)
+	def makeTop() -> Workplane:
+		hlg = lambda: cylinder(t2, 9.53 / 2 + 0.05)
+		hsm = lambda: cylinder(t2, 6.35 / 2 + 0.05)
+		led = lambda: cylinder(t2, 5.0 / 2)
 
 		return dif([
 			brick(wt, -1.0),
 			module(lambda i: sum([
-				grid(ptn_map(ptn, lambda: hole_large, lambda: hole_small)),
-				com(mirror('XZ'), mov(0, ch / 4, t3)) (
-					box_fc(cw, ch / 2, 2.0, '|Z', ir, c2)
-				),
+				grid(ptns_map(
+					(oder(ptn_top, potsPtn(i)), hlg),
+					(tglsPtn(i), hsm),
+					(ptn_all, led),
+				)),
+				# com(mirror('XZ'), mov(0, ch / 4, t3)) (
+				# 	box_fc(cw - wt2, ch / 2 - wt2, 2.0, '|Z', ir, c2)
+				# ),
 			])),
-			holes(w, h, hol, hol, t2, m4xr),
-			lcuts(w, h, hol, t3, hol * s22).translate((0, 0, t3)),
+			holes(w / 2 - hol, h / 2 - hol, t2, m4xr),
+			lcuts(w, h, hol, wt * 2, hol * s22).translate((0, 0, t3)),
 			*([] if modules != 2 else [
-				holes(0, h, 0, hol, t2, m4xr),
-				ucuts(0, h, hol, t3, hol * s22).translate((0, 0, t3))
+				holes(0, h / 2 - hol, t2, m4xr),
+				ucuts(0, h / 2, hol, t3, hol * s22).translate((0, 0, t3))
 			]),
 			*([] if modules != 3 else [
-				holes(0, h, cw / 2, hol, t2, m4xr),
+				holes(cw / 2, h / 2 - hol, t2, m4xr),
 				ucuts(cw, h, hol, t3, hol * s22).translate((0, 0, t3))
 			]),
 		])
@@ -122,15 +129,16 @@ def agc(
 	def makeBot() -> Workplane:
 		return dif([
 			brick(wt, 1.0),
-			holes(w, h, hol, hol, t2, m4dr),
-			mov(0, 0, -t3 / 2) (holes(w, h, hol, hol, t3, m4xr)),
+			holes(w / 2 - hol, h / 2 - hol, t2, m4dr),
+			holes(45, 45, t2, m4dr),
+			mov(0, 0, -t3 / 2) (holes(w / 2 - hol, h / 2 - hol, t3, m4xr)),
 			*([] if modules != 2 else [
-				holes(0, h, 0, hol, t2, m4dr),
-				mov(z = -t3 / 2) (holes(0, h, 0, hol, t3, m4xr)),
+				holes(0, h / 2 - hol, t2, m4dr),
+				mov(z = -t3 / 2) (holes(0, h / 2 - hol, t3, m4xr)),
 			]),
 			*([] if modules != 3 else [
-				holes(0, h, cw / 2, hol, t2, m4dr),
-				mov(z = -t3 / 2) (holes(0, h, cw / 2, hol, t3, m4xr)),
+				holes(cw / 2, h / 2 - hol, t2, m4dr),
+				mov(z = -t3 / 2) (holes(cw / 2, h / 2 - hol, t3, m4xr)),
 			]),
 			com(mirror('XZ'), mov(0, (h / 2 - col + wt2) / 2, wt - t3)) (
 				box_fc(w - 4 * wt, h / 2 - col - wt2, 2.0, '|Z', ir, c2)
@@ -146,54 +154,40 @@ def agc(
 	def threadCut(body: Workplane) -> Workplane:
 		return com(rotz(180), mov((col / 2 - w) / 2, (col * 3 / 2 - h) / 2)) (
 			sum([
-				body - holes(w, h, hol, hol, t2, m4r),
+				body - holes(w / 2 - hol, h / 2 - hol, t2, m4r),
 				mov(w / 2 - hol, h / 2 - hol) (
 					Workplane(thread('M4', t3, 'internal'))
 				),
 			])
 			.intersect(mov(w / 2, h / 2) (wp.box(col, col * 3, t)))
 		)
-	
-	def wafer(w: float, h: float, t: float, wt: float, ws: float, c = 0.5) -> Workplane:
-		cnt = round((w - wt * 2) / ws)
-		return sum([
-			com(mirror("XZ"), mov(y = h / 2 - wt / 2)) (box(w, wt, t)),
-			com(mirror("YZ"), mov(x = w / 2 - wt / 2)) (box(wt, h, t)),
-			*([
-				mirror("YZ") (mov(ws * i - w / 2, ws * i - h / 2) (
-					rotz(-45) (box(ws * i * 2 * s2, wt, t).chamfer(c))
-				))
-				for i in range(1, cnt)
-			]),
-		]).intersect(
-			box_fc(w, h, t, "|Z", ir, c)
-		)
 
 	def controls() -> Workplane:
-		return module(lambda i: grid(lambda x, y: mov(z = -1) (
-			pomona4mm()
-			if y > 2 else
-			bourns51()
-			if pattern(i)(x, y) else
-			toggle(random() < 0.5)
-			if i == 1 or y != 2 else
-			led5()
+		return module(lambda i: grid(ptns_map(
+			(ptn_top, pomona4mm),
+			(potsPtn(i), bourns51),
+			(tglsPtn(i), lambda: toggle(random() < 0.5)),
+			(ptn_all, led5),
+		)))
+	
+	def extraLove() -> Workplane:
+		return module(lambda i: grid(ptns_map(
+			(potsPtn(i), knob),
 		)))
 
 	bot: Workplane = makeBot()
 	top: Workplane = makeTop()
 	cts: Workplane = controls()
-	waf: Workplane = module(lambda i: mov(0, -ch / 4) (
-		wafer(cw, ch / 2, 3, 1.5, inch / 8)
-	))
+	xtr: Workplane = extraLove()
+
 	stk: List[Workplane] = [
 		mov(z = -t3 - pl) (bot),
 		mov(z = t3 + pl) (top),
-		mov(z = t2) (cts),
-		mov(z = t2) (waf)
+		mov(z = t2 + pl) (cts),
+		mov(z = t2 + 6) (xtr),
 	]
 	thd: Workplane = threadCut(bot) if threads else None
-	return (bot, top, stk, waf, thd) if threads else (bot, top, stk, waf)
+	return (bot, top, stk, thd) if threads else (bot, top, stk)
 
 # units = [agc(i) for i in range(1, 4)]
 # for i, parts in enumerate(units):
@@ -202,7 +196,7 @@ def agc(
 # 	export(f'AGC-{i}M-11', sum(parts[2]), step = False)
 # 	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
 
-parts = agc(1, lambda i: ptn_d if i == 1 else ptn_x)
+parts = agc(1, const(und(ptn_bot, ptn_x)), const(und(ptn_bot, ptn_w)))
 show(parts[2])
-# export(f'AGC-{1}M-11P', sum(parts[2]), step = False, svg = False)
-# export(f'AGC-{1}M-11W', sum(parts[3]), step = False, svg = False)
+
+# show(knob())
