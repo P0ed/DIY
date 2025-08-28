@@ -1,7 +1,7 @@
 import cadquery as cq
 from cadquery import Vector, Workplane, Face, Solid, Shell, BoundBox
 from math import sin, cos, pi, floor, sqrt
-from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar
+from typing import Union, Tuple, Optional, Callable, List, TypeVar
 from functools import reduce
 from random import random
 from lib.tools import *
@@ -46,7 +46,7 @@ def holes(w: float, h: float, l: float, r: float) -> Workplane:
 	)
 
 def hexNut(d: float, l: float) -> Workplane:
-	return rotz(random() * 360) (
+	return rotz(random() * 60) (
 		wp.polygon(6, d)
 		.extrude(l)
 		.intersect(
@@ -54,25 +54,27 @@ def hexNut(d: float, l: float) -> Workplane:
 		)
 	)
 
-def pomona4mm() -> Workplane:
-	return (
-		cone(6.35, 6.15, 6.35).edges('>Z').chamfer(0.5)
-		- mov(z = 6.35) (cylinder(12.5, 2.1))
+def pomona1581() -> Workplane:
+	return rotz(90) (
+		(cone(6.35, 6.15, 6.35) - mov(z = 6.35) (cylinder(12.5, 2.1)))
+		.edges('>Z').chamfer(0.5)
 	)
 
-def toggle(pos: bool) -> Workplane:
+def toggle(pos: Optional[bool] = None) -> Workplane:
+	pos = random() < 0.5 if pos is None else pos
 	return (
-		com(mov(z = 3.175 / 2), rotz(90)) (
-			cylinder(4, 3.175).edges('>Z').chamfer(0.5)
+		com(mov(z = 4.2 / 2), rotz(90)) (
+			cylinder(4.2, 3.175).edges('>Z').chamfer(0.5)
 		)
-		+ com(mov(0, -2 if pos else 2, 9), rotx(13 if pos else -13)) (
+		+ com(mov(0, -1.7 if pos else 1.7, 9), rotx(13 if pos else -13)) (
 			rotz(90) (cylinder(14, 1.3).fillet(1.299))
 		)
 		+ hexNut(8.5, 1.5)
 	)
 
-def knob() -> Workplane:
-	return mov(z = 6.0) (
+def knob(angle: Optional[float] = None) -> Workplane:
+	angle = random() * 120 - 60 if angle is None else angle
+	return com(rotz(angle), mov(z = 6.0)) (
 		dif([
 			rotz(90) (cylinder(12.0, 6.35)),
 			com(mirror('YZ'), mov(13.5, 0, 8), roty(75)) (box(20, 20, 20)),
@@ -82,12 +84,13 @@ def knob() -> Workplane:
 		- mov(z = 3 - 9.499 / 2) (cylinder(9.5, 6.35 / 2))
 	)
 
-def bourns51() -> Workplane:
+def bourns51(angle: Optional[float] = None) -> Workplane:
+	angle = random() * 120 - 60 if angle is None else angle
 	return (
 		com(mov(z = 2.75), rotz(90)) (
 			cylinder(5.5, 9.5 / 2).edges('>Z').chamfer(0.5)
 		)
-		+ com(mov(z = 4.5 + 5), rotz(90 + random() * 120 - 60)) (
+		+ com(mov(z = 4.5 + 5), rotz(90 + angle)) (
 			cylinder(10, 6.35 / 2).edges('>Z').chamfer(0.5)
 			- mov(z = 5) (box(7, 1.5, 3))
 		)
@@ -99,17 +102,21 @@ def led5() -> Workplane:
 		wp.circle(2.5).extrude(4.5).edges('>Z').fillet(2.499)
 	)
 
+def frame(w: float, h: float, t: float, wt: float, c: float = 0.5, ir: float = 2.0) -> Workplane:
+	return sum([
+		com(mirror('XZ'), mov(y = h / 2 - wt / 2)) (box(w, wt, t)),
+		com(mirror('YZ'), mov(x = w / 2 - wt / 2)) (box(wt, h, t)),
+	]).intersect(
+		box(w, h, t).edges('|Z').fillet(ir).edges().chamfer(c)
+	)
+
 def xxx(w: float, h: float, t: float, wt: float, ws: float, c: float = 0.5, ir: float = 2.0) -> Workplane:
-		cnt = round((w - wt * 2) / ws)
-		return sum([
-			com(mirror('XZ'), mov(y = h / 2 - wt / 2)) (box(w, wt, t)),
-			com(mirror('YZ'), mov(x = w / 2 - wt / 2)) (box(wt, h, t)),
-			*([
-				mirror('YZ') (mov(ws * i - w / 2, ws * i - h / 2) (
-					rotz(-45) (box(ws * i * 2 * s2, wt, t).chamfer(c))
-				))
-				for i in range(1, cnt)
-			]),
-		]).intersect(
-			box(w, h, t).edges('|Z').fillet(ir).edges().chamfer(c)
-		)
+	cnt = round((w - wt * 2) / ws)
+	return sum([
+		mirror('YZ') (mov(ws * i - w / 2, ws * i - h / 2) (
+			rotz(-45) (box(ws * i * 2 * s2, wt, t).chamfer(c))
+		))
+		for i in range(1, cnt)
+	]).intersect(
+		box(w, h, t).chamfer(c)
+	)

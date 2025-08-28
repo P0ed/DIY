@@ -49,41 +49,30 @@ def agc(
 		])
 
 	def lcuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
-		return sum([
-			mirror('XZ', 'YZ') (
-				box_fc((r + d) * 2, (r + d) * 2, l + c1, '+Z', r, c2)
-				.translate((w / 2, h / 2, c2 - l / 2))
-			),
-			mirror('XZ', 'YZ') (
-				box_fc((r + d + c2) * 2, (r + d + c2) * 2, c1 + pl, '+Z', r + c2, c2)
-				.translate((w / 2, h / 2, 0))
-			),
-		])
+		return mirror('XZ', 'YZ') (
+			box_fc((r + d) * 2, (r + d) * 2, l + c1, '+Z', r, c2)
+			.translate((w / 2, h / 2, c2 - l / 2))
+		)
 
 	def ucuts(w: float, h: float, d: float, l: float, r: float) -> Workplane:
-		return sum([
-			mirror('XZ', 'YZ') (
-				box_fc(r * 2 + pl, (r + d) * 2, l + c1, '+Z', r, c2)
-				.translate((w / 2, h / 2, c2 - l / 2))
-			),
-			mirror('XZ', 'YZ') (
-				box_fc((r + c2) * 2 + pl, (r + d + c2) * 2, c1 + pl, '+Z', r + c2, c2)
-				.translate((w / 2, h / 2, 0))
-			),
-		])
+		return mirror('XZ', 'YZ') (
+			box_fc(r * 2 + pl, (r + d) * 2, l + c1, '+Z', r, c2)
+			.translate((w / 2, h / 2, c2 - l / 2))
+		)
 
 	def brick(wall: float, dir: float) -> Workplane:
-		cl: float = (2 - s2) * 6
+		cr6: float = (2 - s2) * 6
 		return dif([
 			(
 				box(w, h, t2)
-				.edges('+Z' if dir > 0 else '+Z or (+Y and >Z)')
-				.chamfer(cl)
-				.edges('<Z' if dir > 0 else '>Z and +X').chamfer(c2)
+				.edges('+Z').chamfer(cr6)
+				.edges('<Z').chamfer(c2)
 
-				# .edges('+Z' if dir > 0 else '+Z or (+Y and >Z)')
-				# .chamfer(cl)
-				# .edges('<Z' if dir > 0 else '>Z and +X').chamfer(c2)
+				if dir > 0 else
+
+				box(w, h, t2)
+				.edges('+Z' if dir > 0 else '+Z or >Z')
+				.chamfer(cr6)
 			),
 			com(mov(0, 0, wall * dir), sum) ([
 				box_fc(w - col, h - col * 2, t2, '|Z', ir, c2),
@@ -100,15 +89,13 @@ def agc(
 	def makeTop() -> Workplane:
 		hlg = lambda: cylinder(t2, 9.53 / 2 + 0.05)
 		hsm = lambda: cylinder(t2, 6.35 / 2 + 0.05)
-		led = lambda: cylinder(t2, 5.0 / 2)
 
 		return dif([
 			brick(wt, -1.0),
 			module(lambda i: sum([
 				grid(ptns_map(
 					(oder(ptn_top, potsPtn(i)), hlg),
-					(tglsPtn(i), hsm),
-					(ptn_all, led),
+					(ptn_all, hsm),
 				)),
 				# com(mirror('XZ'), mov(0, ch / 4, t3)) (
 				# 	box_fc(cw - wt2, ch / 2 - wt2, 2.0, '|Z', ir, c2)
@@ -118,7 +105,7 @@ def agc(
 			lcuts(w, h, hol, wt * 2, hol * s22).translate((0, 0, t3)),
 			*([] if modules != 2 else [
 				holes(0, h / 2 - hol, t2, m4xr),
-				ucuts(0, h / 2, hol, t3, hol * s22).translate((0, 0, t3))
+				ucuts(0, h, hol, t3, hol * s22).translate((0, 0, t3))
 			]),
 			*([] if modules != 3 else [
 				holes(cw / 2, h / 2 - hol, t2, m4xr),
@@ -130,7 +117,6 @@ def agc(
 		return dif([
 			brick(wt, 1.0),
 			holes(w / 2 - hol, h / 2 - hol, t2, m4dr),
-			holes(45, 45, t2, m4dr),
 			mov(0, 0, -t3 / 2) (holes(w / 2 - hol, h / 2 - hol, t3, m4xr)),
 			*([] if modules != 2 else [
 				holes(0, h / 2 - hol, t2, m4dr),
@@ -164,12 +150,12 @@ def agc(
 
 	def controls() -> Workplane:
 		return module(lambda i: grid(ptns_map(
-			(ptn_top, pomona4mm),
+			(ptn_top, pomona1581),
 			(potsPtn(i), bourns51),
-			(tglsPtn(i), lambda: toggle(random() < 0.5)),
+			(tglsPtn(i), toggle),
 			(ptn_all, led5),
 		)))
-	
+
 	def extraLove() -> Workplane:
 		return module(lambda i: grid(ptns_map(
 			(potsPtn(i), knob),
@@ -180,23 +166,28 @@ def agc(
 	cts: Workplane = controls()
 	xtr: Workplane = extraLove()
 
-	stk: List[Workplane] = [
+	return [
 		mov(z = -t3 - pl) (bot),
 		mov(z = t3 + pl) (top),
 		mov(z = t2 + pl) (cts),
 		mov(z = t2 + 6) (xtr),
-	]
-	thd: Workplane = threadCut(bot) if threads else None
-	return (bot, top, stk, thd) if threads else (bot, top, stk)
+	] + (
+		[threadCut(bot)] if threads else []
+	)
 
-# units = [agc(i) for i in range(1, 4)]
-# for i, parts in enumerate(units):
-# 	export(f'AGC-{i}M-01', parts[0])
-# 	export(f'AGC-{i}M-10', parts[1])
-# 	export(f'AGC-{i}M-11', sum(parts[2]), step = False)
-# 	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
+units = [
+	map_lst(mov(120 if i == 1 else 0, 200 if i == 2 else 0)) (
+		agc(i, const(und(ptn_bot, ptn_x)), const(und(ptn_bot, ptn_w)))
+	)
+	for i in range(1, 4)
+]
 
-parts = agc(1, const(und(ptn_bot, ptn_x)), const(und(ptn_bot, ptn_w)))
-show(parts[2])
+for i, parts in enumerate(units):
+	export(f'AGC-{i}M-01', parts[0])
+	export(f'AGC-{i}M-10', parts[1])
+	export(f'AGC-{i}M-11', sum([parts[0], parts[1]]), step = False)
+	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
+
+show(units)
 
 # show(knob())

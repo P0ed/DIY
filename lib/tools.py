@@ -1,7 +1,7 @@
 import cadquery as cq
-from cadquery import Vector, Workplane, Face, Solid, Shell
+from cadquery import Vector, Workplane
 from math import sin, cos, pi, floor, sqrt
-from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar, NewType, Any
+from typing import Union, Tuple, Optional, Callable, List, TypeVar, Any
 from functools import reduce
 
 VectorLike = Union[Tuple[float, float], Tuple[float, float, float], Vector]
@@ -20,16 +20,22 @@ def id(x: A) -> A:
 	return x
 def const(x: A) -> Callable[[B], A]:
 	return lambda _: x
+
 def map_opt(tfm: Callable[[A], B]) -> Callable[[Optional[A]], Optional[B]]:
 	return lambda m: None if m is None else tfm(m)
-def compact(xs: List[Optional[A]]) -> List[A]:
-	return [x for x in xs if x is not None]
+def map_lst(tfm: Callable[[A], B]) -> Callable[[List[A]], List[B]]:
+	return lambda m: [tfm(e) for e in m]
+
 def com2(l: Callable[[B], C], r: Callable[[A], B]) -> Callable[[A], C]:
 	return lambda x: l(r(x))
 def com(*xs: Callable[[Any], Any]) -> Callable[[Any], Any]:
 	return reduce(com2, xs, id)
+
 def flat(xs: List[List[A]]) -> List[A]:
 	return reduce(list.__add__, xs)
+def compact(xs: List[Optional[A]]) -> List[A]:
+	return [x for x in xs if x is not None]
+
 def sum(xs: List[Workplane]) -> Workplane:
 	return reduce(lambda x, y: x + y, xs)
 def dif(xs: List[Workplane]) -> Workplane:
