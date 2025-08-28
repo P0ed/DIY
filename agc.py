@@ -37,7 +37,7 @@ def agc(
 	crh: float = (2 - s2) * hol
 	ir: float = 2.0
 
-	def box_fc(w, h, t, fe, fr, c) -> Workplane:
+	def box_fc(w, h, t, fe = '|Z', fr = ir, c = c2) -> Workplane:
 		return (
 			wp.box(w, h, t)
 			.edges(fe).fillet(fr)
@@ -76,7 +76,7 @@ def agc(
 			),
 			com(mov(0, 0, wall * dir), sum) ([
 				box_fc(w - col, h - col * 2, t2, '|Z', ir, c2),
-				module(lambda i: box_fc(
+				module(lambda _: box_fc(
 					(w - col) / modules - col, h - wt * 2, t2, '|Z', ir, c2
 				)),
 			]),
@@ -89,11 +89,14 @@ def agc(
 	def makeTop() -> Workplane:
 		return dif([
 			brick(wt, -1.0),
-			module(lambda i: grid(ptn_map(
+			module(lambda m: grid(ptn_map(
 				lambda: cylinder(t2, 9.53 / 2 + 0.05),
-				oder(ptn_top, potsPtn(i)),
+				oder(ptn_top, potsPtn(m)),
 				lambda: cylinder(t2, 6.35 / 2 + 0.05)
 			))),
+			module(lambda _: com(mirror('XZ'), mov(0, ch / 4, t3)) (
+				box_fc(cw - wt2, ch / 2 - wt2, 1 + pl, '|Z')
+			)),
 			holes(w / 2 - hol, h / 2 - hol, t2, m4xr),
 			lcuts(w, h, hol, wt * 2, hol * s22).translate((0, 0, t3)),
 			*([] if modules != 2 else [
@@ -122,7 +125,7 @@ def agc(
 			com(mirror('XZ'), mov(0, (h / 2 - col + wt2) / 2, wt - t3)) (
 				box_fc(w - 4 * wt, h / 2 - col - wt2, 2.0, '|Z', ir, c2)
 			),
-			module(lambda i: mirror('XZ') (mov(0, (h - col) / 2 - wt, wt - t3) (
+			module(lambda _: mirror('XZ') (mov(0, (h - col) / 2 - wt, wt - t3) (
 				box_fc((w - col) / modules - col, col, 2.0, '|Z', ir, c2),
 			))),
 			com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2 - wt2, 1.25)) (
@@ -142,10 +145,10 @@ def agc(
 		)
 
 	def controls() -> Workplane:
-		return module(lambda i: grid(ptns_map(
+		return module(lambda m: grid(ptns_map(
 			(ptn_top, pomona1581),
-			(potsPtn(i), bourns51),
-			(tglsPtn(i), toggle),
+			(potsPtn(m), bourns51),
+			(tglsPtn(m), toggle),
 			(ptn_all, clb300),
 		))) \
 		+ com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2, 1.25 - t * 0.75)) (
@@ -166,19 +169,19 @@ def agc(
 	return [
 		mov(z = -t3 - pl) (bot),
 		mov(z = t3 + pl) (top),
-		mov(z = t2 + pl) (cts),
-		mov(z = t2 + 5.5) (xtr),
+		mov(z = t2 - 0.5) (cts),
+		mov(z = t2 + 5) (xtr),
 		*([] if thd is None else [thd]),
 	]
 
-offsets = lambda i: mov(
-	7.5 * inch if i == 2 else 4 * inch if i == 3 else 0, 8 * inch if i == 3 else 0
+offsets = lambda m: mov(
+	7.5 * inch if m == 2 else 4 * inch if m == 3 else 0, 8 * inch if m == 3 else 0
 )
 units = [
-	map_lst(offsets(i)) (
-		agc(i, const(und(ptn_bot, ptn_x)), const(und(ptn_bot, ptn_w)))
+	map_lst(offsets(m)) (
+		agc(m, const(und(ptn_bot, ptn_x)), lambda i: und(ptn_bot, ptn_d if i == 1 else ptn_w))
 	)
-	for i in range(1, 2)
+	for m in range(1, 4)
 ]
 
 # for i, parts in enumerate(units):
