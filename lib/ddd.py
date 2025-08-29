@@ -56,15 +56,15 @@ def hexNut(d: float, l: float) -> Workplane:
 
 def lemoECG0B() -> Workplane:
 	return rotz(90) (
-		mov(z=3.5 / 2) (
+		mov(z = 3.5 / 2) (
 			cylinder(3.5, 9 / 2).intersect(box(9, 8.2, 3.5))
 		)
-		+ mov(z=2.5 / 2) (
+		+ mov(z = 2.5 / 2) (
 			cylinder(2.5, 12 / 2).edges('>Z').chamfer(1)
 		)
-		- rotz(45) (mirror('XZ', 'YZ') (rotz(-45) (mov(6) (
+		- com(rotz(45), mirror('XZ', 'YZ'), rotz(-45), mov(6)) (
 			box(1.4, 1.5, 5)
-		))))
+		)
 	)
 
 def pomona1581() -> Workplane:
@@ -88,12 +88,11 @@ def toggle(pos: Optional[bool] = None) -> Workplane:
 def knob(angle: Optional[float] = None) -> Workplane:
 	angle = random() * 120 - 60 if angle is None else angle
 	return com(rotz(angle), mov(z = 6.35)) (
-		dif([
-			rotz(90) (cylinder(12.7, 6.35)),
-			com(mirror('YZ'), mov(13.5, 0, 8), roty(75)) (box(20, 20, 20)),
-		])
-		.edges('>Z').chamfer(0.15)
-		- mov(0, 5, 6.249) (box(1.5, 10.0, 1.5).fillet(0.749))
+		rotz(90) (cylinder(12.7, 6.35).edges('>Z').chamfer(0.15))
+		- com(mirror('YZ'), mov(13.5, 0, 8), roty(75)) (box(20, 20, 20))
+		- mov(0, 4 - 0.75, 6.35) (
+			box(1.5, 8, 1.5).chamfer(0.749)
+		)
 		- mov(z = 3 - 9.499 / 2) (cylinder(9.5, 6.35 / 2))
 	)
 
@@ -118,7 +117,7 @@ def led5() -> Workplane:
 def clb300() -> Workplane:
 	sph = lambda z: mov(z=z) (wp.sphere(8))
 	return rotz(90) (
-		mov(z=0.9) (sph(7.2).intersect(sph(-7.2)))
+		mov(z = 0.9) (sph(7.2).intersect(sph(-7.2)))
 		+ cylinder(1.8, 7.11 / 2)
 	)
 

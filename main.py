@@ -16,7 +16,8 @@ units: List[List[Workplane]] = [
 		agc(
 			m,
 			const(und(ptn_bot, ptn_x)),
-			lambda i: und(ptn_bot, ptn_d if i == 1 else ptn_w)
+			lambda i: und(ptn_bot, ptn_d if i == 1 else ptn_w),
+			m == 1
 		)
 	)
 	for m in range(1, 4)
@@ -29,5 +30,3 @@ for i, parts in enumerate(units):
 	if i == 0 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
 
 show(units)
-
-# show(knob())
