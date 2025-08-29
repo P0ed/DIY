@@ -73,6 +73,10 @@ def agc(
 					(w - col) / modules - col, h - wt * 2, t2, '|Z', ir, c2
 				)),
 			]),
+			module(lambda _: com(mirror('XZ'), mov(0, ch / 4, -t3 * dir)) (
+				(cut := box_fc(cw - wt2, ch / 2 - wt2, 1 + pl, '|Z'))
+				+ mov(z = wt * dir) (cut)
+			)),
 			mirror('YZ') (
 				box_fc(wt * 2, h - col * 2, t2 + ir * 2, '|X', ir, c2)
 				.translate((w / 2, 0, -wt * 2 - ir if dir != 1 else 0))
@@ -87,9 +91,6 @@ def agc(
 				oder(ptn_top, potsPtn(m)),
 				lambda: cylinder(t2, 6.35 / 2 + 0.05)
 			))),
-			module(lambda _: com(mirror('XZ'), mov(0, ch / 4, t3)) (
-				box_fc(cw - wt2, ch / 2 - wt2, 1 + pl, '|Z')
-			)),
 			holes(w / 2 - hol, h / 2 - hol, t2, m4xr),
 			lcuts(w, h, hol, wt * 2, hol * s22).translate((0, 0, t3)),
 			*([] if modules != 2 else [
@@ -115,12 +116,6 @@ def agc(
 				holes(cw / 2, h / 2 - hol, t2, m4dr),
 				mov(z = -t3 / 2) (holes(cw / 2, h / 2 - hol, t3, m4xr)),
 			]),
-			com(mirror('XZ'), mov(0, (h / 2 - col + wt2) / 2, wt - t3)) (
-				box_fc(w - 4 * wt, h / 2 - col - wt2, 2.0, '|Z', ir, c2)
-			),
-			module(lambda _: mirror('XZ') (mov(0, (h - col) / 2 - wt, wt - t3) (
-				box_fc((w - col) / modules - col, col, 2.0, '|Z', ir, c2),
-			))),
 			com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2 - wt2, 1.25)) (
 				com(roty(90), rotx(90)) (lemo0BCutout(wt))
 			),
