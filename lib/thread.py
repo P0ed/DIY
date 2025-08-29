@@ -6,7 +6,7 @@ from functools import reduce
 from lib.tools import *
 from lib.ddd import *
 
-class Thread(object):
+class _Thread(object):
     ''' a base class to represents threads of all kinds '''
 
     def __init__(self, nominal, passdrill, threaddrill, pitch):
@@ -16,48 +16,48 @@ class Thread(object):
         self.threaddrill = threaddrill
 
 
-class ISOThread(Thread):
+class _ISOThread(_Thread):
     ''' the parameters in ISO threads '''
 
     def __init__(self, nominal, passdrill, threaddrill, pitch):
-        super(ISOThread, self).__init__(nominal, passdrill, threaddrill, pitch)
+        super(_ISOThread, self).__init__(nominal, passdrill, threaddrill, pitch)
         # derived
         self.veeheight = pitch / (2 * tan(radians(30)))
         self.Dmajor = nominal
         self.Dminor = nominal - 2 * self.veeheight * 5 / 8
 
 
-class UTSThread(ISOThread):
+class _UTSThread(_ISOThread):
     ''' IMO UTS thread has the same defintions as ISO thread,
         so we can simply delegate (for now ?)
     '''
 
     def __init__(self, nominal, passdrill, threaddrill, pitch):
-        super(UTSThread, self).__init__(nominal, passdrill, threaddrill, pitch)
+        super(_UTSThread, self).__init__(nominal, passdrill, threaddrill, pitch)
 
 
-threads = {
-	'M2': ISOThread(2.0, 2.10, 1.60, 0.40),
-	'M2.5': ISOThread(2.5, 2.65, 2.05, 0.45),
-	'M3': ISOThread(3.0, 3.15, 2.50, 0.50),
-	'M4': ISOThread(4.0, 4.20, 3.30, 0.70),
-	'M5': ISOThread(5.0, 5.25, 4.20, 0.80),
-	'M5 0.5': ISOThread(5.0, 5.25, 4.50, 0.50),
-	'M5.5 0.5': ISOThread(5.5, 5.75, 5.00, 0.50),
-	'M6': ISOThread(6.0, 6.30, 5.00, 1.00),
-	'M8': ISOThread(8.0, 8.40, 6.80, 1.25),
-	'M10': ISOThread(10.0, 10.50, 8.50, 1.50),
-	'M12': ISOThread(12.0, 12.50, 10.2, 1.75),
-	'M16': ISOThread(16.0, 16.9, 14.0, 2.0),
-	'M16 1.5': ISOThread(16.0, 16.9, 14.6, 1.50),
-	'M20': ISOThread(20.0, 21.0, 17.5, 2.5),
-	'M20 1.5': ISOThread(20.0, 21.0, 18.5, 1.50),
-	'M24': ISOThread(24.0, 25.0, 21.0, 3.0),
-	'Size 2 56': UTSThread(0.0860 * 25.4, 0.0890 * 25.4, 0.0700 * 25.4, 25.4 / 56),
-	'Size 2 64': UTSThread(0.0860 * 25.4, 0.0890 * 25.4, 0.0700 * 25.4, 25.4 / 64),
-	'1/4 20': UTSThread(0.2500 * 25.4, 0.2570 * 25.4, 0.2010 * 25.4, 25.4 / 20),
-	'5/8 11': UTSThread(5 * 25.4 / 8 , 37 * 25.4 / 64, 17 * 25.4 / 32, 25.4 / 11),
-	'1 32': UTSThread(1.0000 * 25.4, 1.0 * 25.4 + 0.4, 0.9617 * 25.4, 25.4 / 32),
+_threads = {
+	'M2': _ISOThread(2.0, 2.10, 1.60, 0.40),
+	'M2.5': _ISOThread(2.5, 2.65, 2.05, 0.45),
+	'M3': _ISOThread(3.0, 3.15, 2.50, 0.50),
+	'M4': _ISOThread(4.0, 4.20, 3.30, 0.70),
+	'M5': _ISOThread(5.0, 5.25, 4.20, 0.80),
+	'M5 0.5': _ISOThread(5.0, 5.25, 4.50, 0.50),
+	'M5.5 0.5': _ISOThread(5.5, 5.75, 5.00, 0.50),
+	'M6': _ISOThread(6.0, 6.30, 5.00, 1.00),
+	'M8': _ISOThread(8.0, 8.40, 6.80, 1.25),
+	'M10': _ISOThread(10.0, 10.50, 8.50, 1.50),
+	'M12': _ISOThread(12.0, 12.50, 10.2, 1.75),
+	'M16': _ISOThread(16.0, 16.9, 14.0, 2.0),
+	'M16 1.5': _ISOThread(16.0, 16.9, 14.6, 1.50),
+	'M20': _ISOThread(20.0, 21.0, 17.5, 2.5),
+	'M20 1.5': _ISOThread(20.0, 21.0, 18.5, 1.50),
+	'M24': _ISOThread(24.0, 25.0, 21.0, 3.0),
+	'Size 2 56': _UTSThread(0.0860 * 25.4, 0.0890 * 25.4, 0.0700 * 25.4, 25.4 / 56),
+	'Size 2 64': _UTSThread(0.0860 * 25.4, 0.0890 * 25.4, 0.0700 * 25.4, 25.4 / 64),
+	'1/4 20': _UTSThread(0.2500 * 25.4, 0.2570 * 25.4, 0.2010 * 25.4, 25.4 / 20),
+	'5/8 11': _UTSThread(5 * 25.4 / 8 , 37 * 25.4 / 64, 17 * 25.4 / 32, 25.4 / 11),
+	'1 32': _UTSThread(1.0000 * 25.4, 1.0 * 25.4 + 0.4, 0.9617 * 25.4, 25.4 / 32),
 }
 
 
@@ -117,8 +117,8 @@ def thread(size, length, location='external', SEGMENTS=48):
         return func
 
     if isinstance(size, str):
-        th = threads[size]
-    elif isinstance((ISOThread, UTSThread)):
+        th = _threads[size]
+    elif isinstance((_ISOThread, _UTSThread)):
         th = size
     else:
         raise ValueError(f' Unknown thread {size} specified!')
@@ -129,12 +129,12 @@ def thread(size, length, location='external', SEGMENTS=48):
     # and at the same time ensure that the thread 'merges' well with the wall it will attached to
     # the 10 was emprically determined, so there definitely may be some optimization here
     # a fixed value for all may generate an 'invisible' thread (which of cours won't be there ...)
-    epsilon = threads[size].pitch / 10
+    epsilon = _threads[size].pitch / 10
     if epsilon < 0.025:
         # enforce a minimum 0.1mm fit margin
         epsilon = 0.025
 
-    if isinstance(th, (ISOThread, UTSThread)):
+    if isinstance(th, (_ISOThread, _UTSThread)):
         if location.startswith('ext'):
             radius = th.Dminor / 2 - epsilon
             h1 = (pitch * 3 / 4) / 2

@@ -1,14 +1,7 @@
 from typing import Callable, List
-from functools import reduce
 from cadquery import Workplane
-from ocp_vscode import show
-from random import random
-
-import sys, os
-sys.path.append(os.path.abspath('.'))
 from lib.ddd import *
 from lib.tools import *
-from lib.export import export
 from lib.thread import thread
 
 def agc(
@@ -16,8 +9,8 @@ def agc(
 		potsPtn: Callable[[int], Pattern] = lambda i: ptn_x,
 		tglsPtn: Callable[[int], Pattern] = lambda i: ptn_d,
 		threads: bool = False
-	) -> Tuple[Workplane, Workplane, Workplane, List[Workplane]]:
-	
+	) -> List[Workplane]:
+
 	m4r: float = 4.0 / 2
 	m4xr: float = 4.2 / 2
 	m4dr: float = 3.3 / 2
@@ -173,21 +166,3 @@ def agc(
 		mov(z = t2 + 5) (xtr),
 		*([] if thd is None else [thd]),
 	]
-
-offsets = lambda m: mov(
-	7.5 * inch if m == 2 else 4 * inch if m == 3 else 0, 8 * inch if m == 3 else 0
-)
-units = [
-	map_lst(offsets(m)) (
-		agc(m, const(und(ptn_bot, ptn_x)), lambda i: und(ptn_bot, ptn_d if i == 1 else ptn_w))
-	)
-	for m in range(1, 4)
-]
-
-# for i, parts in enumerate(units):
-# 	export(f'AGC-{i}M-01', parts[0])
-# 	export(f'AGC-{i}M-10', parts[1])
-# 	export(f'AGC-{i}M-11', sum([parts[0], parts[1]]), step = False)
-# 	if i == 1 and len(parts) > 4: export(f'AGC-01T', parts[4], stl = False, step = False)
-
-show(units)

@@ -1,7 +1,6 @@
 import os
-from cadquery import Vector, Workplane, Face, Solid, Shell, BoundBox
-from math import sin, cos, pi, floor, sqrt
-from typing import Union, Tuple, Sequence, Optional, Callable, List, Dict, TypeVar
+from cadquery import Workplane, BoundBox
+from typing import Union, Tuple, Optional, Callable, List
 from functools import reduce
 from lib.tools import *
 from lib.ddd import *
@@ -20,7 +19,7 @@ def three_view(wp: Workplane) -> Workplane:
 		),
 	])
 
-def render(path: str, wp: Workplane, hidden: bool = False):
+def _render(path: str, wp: Workplane, hidden: bool = False):
 	box: BoundBox = bounds(wp)
 	view = three_view(wp).rotate((0, 0, 0), (0, 1, 0), 90)
 	margin: float = 30.0
@@ -40,9 +39,8 @@ def render(path: str, wp: Workplane, hidden: bool = False):
 		'showHidden': hidden,
 	})
 
-def export(name: str, wp: Workplane, stl: bool = True, svg: bool = True, step: bool = True, hidden: bool = False):
+def export(name: str, wp: Workplane, stl: bool = True, svg: bool = True, step: bool = True, dxf: bool = True, hidden: bool = False):
 	[os.makedirs(dir, exist_ok=True) for dir in ['STL', 'STEP', 'SVG']]
-
 	if stl: wp.export('STL/' + name + '.stl')
-	if svg: render('SVG/' + name + '.svg', wp, hidden = hidden)
+	if svg: _render('SVG/' + name + '.svg', wp, hidden = hidden)
 	if step: wp.export('STEP/' + name + '.step')

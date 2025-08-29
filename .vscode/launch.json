@@ -9,7 +9,7 @@
 			"name": "Python Debugger: Current File",
 			"type": "debugpy",
 			"request": "launch",
-			"program": "agc.py",
+			"program": "main.py",
 			"console": "integratedTerminal"
 		}
 	]
