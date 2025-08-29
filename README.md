@@ -45,7 +45,7 @@ The AGC case design:
 ### Generate AGC Case Files
 
 ```bash
-python agc.py
+python main.py
 ```
 
 This generates files for all modules configurations:
@@ -84,7 +84,7 @@ Available patterns (defined in `lib/tools.py`):
 
 ## Library Functions
 
-### `lib/ddd.py` - 3D Modeling Utilities
+### `lib.ddd` - 3D Modeling Utilities
 - `mov(x, y, z)`: Translation function
 - `mirror(*plane)`: Mirroring operations with union
 - `rotx(angle), roty(angle), rotz(angle)`: Single axis rotation
@@ -92,16 +92,16 @@ Available patterns (defined in `lib/tools.py`):
 - `lemo(wt)`: LEMO connector cutout
 - `holes()`: Mounting hole patterns
 
-### `lib/tools.py` - Utilities and Patterns
+### `lib.tools` - Utilities and Patterns
 - Mathematical constants: `inch`, `s2`, `pl`
 - Functional programming utilities: `com`, `sum`, `dif`, `flat`
 - Pattern definitions and mapping functions
 - Boolean pattern combinators
 
-### `lib/thread.py` - Threading System
+### `lib.thread` - Threading System
 - Thread Generation: `thread(size, length, location, segments)`
 
-### `lib/export.py` - Export System
+### `lib.export` - Export System
 - **Multi-format Export**: STL, STEP, SVG generation
 - `export(name, workplane, stl, svg, step, hidden)`: Main export function
 - **Technical Drawings**: Three-view projections with proper scaling

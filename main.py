@@ -12,9 +12,13 @@ offsets: Callable[[int], Callable[[Workplane], Workplane]] = lambda m: mov(
 )
 units: List[List[Workplane]] = [
 	map_lst(offsets(m)) (
-		agc(m, const(und(ptn_bot, ptn_x)), lambda i: und(ptn_bot, ptn_d if i == 1 else ptn_w))
+		agc(
+			m,
+			const(und(ptn_bot, ptn_x)),
+			lambda i: und(ptn_bot, ptn_d if i == 1 else ptn_w)
+		)
 	)
-	for m in range(1, 3)
+	for m in range(1, 4)
 ]
 
 # for i, parts in enumerate(units):
