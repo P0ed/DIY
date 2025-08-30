@@ -54,17 +54,38 @@ def hexNut(d: float, l: float) -> Workplane:
 		)
 	)
 
-def lemoECG0B() -> Workplane:
-	return rotz(90) (
-		mov(z = 3.5 / 2) (
-			cylinder(3.5, 9 / 2).intersect(box(9, 8.2, 3.5))
-		)
-		+ mov(z = 2.5 / 2) (
+def lemoM9RoundNut() -> Workplane:
+	return (
+		mov(z = 2.5 / 2) (
 			cylinder(2.5, 12 / 2).edges('>Z').chamfer(1)
 		)
 		- com(rotz(45), mirror('XZ', 'YZ'), rotz(-45), mov(6)) (
 			box(1.4, 1.5, 5)
 		)
+	)
+
+def lemoECG0B303() -> Workplane:
+	return rotz(90) (
+		mov(z = 3.5 / 2) (
+			dif([
+				dif([
+					cylinder(3.5, 9 / 2),
+					sum([
+						com(mov(z = 1.5), rotz(120 * ai), mov(sqrt(3))) (
+							cylinder(3, 0.5)
+						)
+						for ai in range(3)
+					]),
+				])
+				.edges('>Z').chamfer(0.25),
+				dif([
+					mov(z = 1.5) (cylinder(3, 7.75 / 2)),	
+					mov(z = 1.5) (cylinder(3, 6.25 / 2)),
+				]),
+			])
+			* box(9, 8.2, 3.5)
+		)
+		+ lemoM9RoundNut()
 	)
 
 def pomona1581() -> Workplane:
@@ -83,17 +104,6 @@ def toggle(pos: Optional[bool] = None) -> Workplane:
 			rotz(90) (cylinder(14, 1.3).fillet(1.299))
 		)
 		+ hexNut(8.5, 1.5)
-	)
-
-def knob(angle: Optional[float] = None) -> Workplane:
-	angle = random() * 120 - 60 if angle is None else angle
-	return com(rotz(angle), mov(z = 6.35)) (
-		rotz(90) (cylinder(12.7, 6.35).edges('>Z').chamfer(0.15))
-		- com(mirror('YZ'), mov(13.5, 0, 8), roty(75)) (box(20, 20, 20))
-		- mov(0, 4 - 0.75, 6.35) (
-			box(1.5, 8, 1.5).chamfer(0.749)
-		)
-		- mov(z = 3 - 9.499 / 2) (cylinder(9.5, 6.35 / 2))
 	)
 
 def bourns51(angle: Optional[float] = None) -> Workplane:
@@ -138,4 +148,15 @@ def xxx(w: float, h: float, t: float, wt: float, ws: float, c: float = 0.5, ir: 
 		for i in range(1, cnt)
 	]).intersect(
 		box(w, h, t).chamfer(c)
+	)
+
+def knob(angle: Optional[float] = None) -> Workplane:
+	angle = random() * 120 - 60 if angle is None else angle
+	return com(rotz(angle), mov(z = 6.35)) (
+		rotz(90) (cylinder(12.7, 6.35).edges('>Z').chamfer(0.15))
+		- com(mirror('YZ'), mov(13.5, 0, 8), roty(75)) (box(20, 20, 20))
+		- mov(0, 4 - 0.75, 6.35) (
+			box(1.5, 8, 1.5).chamfer(0.749)
+		)
+		- mov(z = 3 - 9.499 / 2) (cylinder(9.5, 6.35 / 2))
 	)

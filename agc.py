@@ -140,7 +140,7 @@ def agc(
 			(ptn_all, clb300),
 		))) \
 		+ com(mirror('YZ'), mov((modules * 2 - 1) * inch, h / 2, 1.25 - t * 0.75)) (
-			com(rotz(180), roty(90), rotx(90)) (lemoECG0B())
+			com(rotz(180), roty(90), rotx(90)) (lemoECG0B303())
 		)
 
 	def extraLove() -> Workplane:

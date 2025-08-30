@@ -11,7 +11,7 @@ An enclosure inspired by the Apollo Guidance Computer.
 - **Pattern System**: Configurable hole patterns including diamond, X, W, and custom layouts
 - **Multi-module Support**: 1M, 2M, and 3M case configurations for different setups
 - **Multiple Export Formats**: Generates STL (3D printing), STEP (CNC), and SVG (technical drawings)
-- **LEMO connector cutouts**: for EGG.0B.305.CLL miniature power and data socket
+- **LEMO connector cutouts**: for ECG.0B.303.CLL miniature universal socket
 - **Serge Compatibility**: Designed for 4×6 inch PCBs and Paperface era 1 inch control spacings.
 
 ## Images
